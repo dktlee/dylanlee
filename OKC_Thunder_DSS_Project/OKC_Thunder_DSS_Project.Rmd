@@ -1,0 +1,163 @@
+---
+title: "OKC_Thunder_DSS_Project"
+output: pdf_document
+---
+
+Dylan Lee
+dktlee@uwaterloo.ca
+(416) 312-7550
+
+```{r Data Collection}
+# historical NBA data collected from beggining of 1999-2000 NBA season up until 2018-2019 season
+YEAR_START <- 2000
+YEAR_END <- 2019
+
+data_standings <- loadStandingsData(YEAR_START, YEAR_END)
+head(data_standings)
+
+#########################################################
+#############   Load Team Standings Data   ##############
+#########################################################
+loadStandingsData <- function(yr_start, yr_end) {
+  # creating final data frame and setting variable types for the columns
+  df <- data.frame(Rk=integer(),Team=character(),Overall=character(),Home=character(),Road=character(),
+                   X3=character(),X10=character(),Oct=character(),
+                   Nov=character(),Dec=character(),Jan=character(),Feb=character(),Mar=character(),
+                   Apr=character(),Season=factor())
+  
+  # loop through each year's csv file and load data
+  for (year in yr_start:yr_end) {
+    file_pth <- paste("team_stats/",year,".csv",sep="")
+    df.temp <- read.csv(file_pth, header = TRUE)
+    df.temp$Season <- year
+    
+    # check for missing data and ensure consistent formatting
+    if(!("Oct" %in% colnames(df.temp))) {
+      df.temp$Oct <- NA
+    }
+    if(!("Nov" %in% colnames(df.temp))) {
+      df.temp$Nov <- NA
+    }
+    if(!("Dec" %in% colnames(df.temp))) {
+      df.temp$Dec <- NA
+    }
+    if(!("Jan" %in% colnames(df.temp))) {
+      df.temp$Jan <- NA
+    }
+    if(!("Feb" %in% colnames(df.temp))) {
+      df.temp$Feb <- NA
+    }
+    if(!("Mar" %in% colnames(df.temp))) {
+      df.temp$Mar <- NA
+    }
+    if(!("Apr" %in% colnames(df.temp))) {
+      df.temp$Apr <- NA
+    }
+    
+    # Columns:
+    # Rk -- Rank
+    # Team
+    # Overall -- Overall W-L record
+    # Home -- W-L record in home games
+    # Road -- W-L record in road games
+    # X3 -- W-L record in games decided by 3 or fewer points
+    # X10 -- W-L record in games decided by 10 or more points
+    # Oct -- W-L record in the month of October
+    # Nov -- W-L record in the month of November
+    # Dec -- W-L record in the month of December
+    # Jan -- W-L record in the month of January
+    # Feb -- W-L record in the month of February
+    # Mar -- W-L record in the month of March
+    # Apr -- W-L record in the month of April
+    df.temp <- data.frame(Rk=df.temp$Rk,Team=df.temp$Team,Overall=df.temp$Overall,Home=df.temp$Home,
+                        Road=df.temp$Road,X3=df.temp$X.3,X10=df.temp$X.10,
+                        Oct=df.temp$Oct,Nov=df.temp$Nov,Dec=df.temp$Dec,Jan=df.temp$Jan,Feb=df.temp$Feb,
+                        Mar=df.temp$Mar,Apr=df.temp$Apr,Season=df.temp$Season)
+    
+    # combine all seasons into one large data frame
+    df <- data.frame(rbind(as.matrix(df), as.matrix(df.temp)))
+  }
+  
+  # split 'Overall' into W and L columns in df
+  wl<-strsplit(as.character(df$Overall), "-")
+  df$Wins<-0
+  df$Losses<-0
+  for (i in 1:dim(df)[1]) {
+    df[i,]$Wins<-wl[[i]][1]
+    df[i,]$Losses<-wl[[i]][2]
+  }
+  
+  return(df)
+}
+
+#############################################################
+#############   Load Player Stats Total Data   ##############
+#############################################################
+loadTotalsData <- function(yr_start, yr_end) {
+  # creating final data frame and setting variable types for the columns
+  df <- data.frame(Rk=integer(),Player=character(),Pos=character(),Age=double(),Tm=character(),
+                   G=double(),GS=double(),MP=double(),FG=double(),FGA=double(),FG.=double(),
+                   X3P=double(),X3PA=double(),X3P.=double(),X2P=double(),X2PA=double(),
+                   X2P.=double(),eFG.=double(),FT=double(),FTA=double(),FT.=double(),ORB=double(),
+                   DRB=double(),TRB=double(),AST=double(),STL=double(),BLK=double(),TOV=double(),
+                   PF=double(),PTS=double(),Season=integer())
+  
+  # loop through each year's csv file and load data
+  for (year in yr_start:yr_end) {
+    year <- 2019
+    file_pth <- paste("player_stats_totals/",year,".csv",sep="")
+    df.temp <- read.csv(file_pth, header = TRUE)
+    df.temp$Season <- year
+    
+    # reading player names from Basketball Reference csv gives format 'Chris Paul\paulch01' 
+    # want to clean format to just First & Last name
+    df.temp$Player<-as.character(df.temp$Player)
+    names<-strsplit(as.character(df.temp$Player),"[\\]")
+    
+    # remove '*' from any name
+    for (i in 1:dim(df.temp)[1]) {
+      name<-names[[i]][1]
+      name<-gsub("[*]","",name)
+      df.temp$Player[i]<-name
+    }
+    
+    # combine all seasons into one large data frame
+    df <- data.frame(rbind(as.matrix(df), as.matrix(df.temp)))
+}
+
+````
+
+
+
+```{r Data Processing}
+````
+
+
+
+```{r Data Analysis}
+````
+
+
+
+```{r Data Collection}
+````
+
+
+
+```{r Modelling}
+````
+
+
+
+```{r Cross Validation}
+````
+
+
+
+```{r Prediction}
+````
+
+
+
+```{r Further Considerations}
+````

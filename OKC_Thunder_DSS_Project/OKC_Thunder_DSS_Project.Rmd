@@ -14,6 +14,8 @@ YEAR_END <- 2019
 
 data_standings <- loadStandingsData(YEAR_START, YEAR_END)
 head(data_standings)
+player_stats_totals <- loadTotalsData(YEAR_START, YEAR_END, TRUE)
+head(player_stats_totals)
 
 #########################################################
 #############   Load Team Standings Data   ##############
@@ -28,7 +30,7 @@ loadStandingsData <- function(yr_start, yr_end) {
   # loop through each year's csv file and load data
   for (year in yr_start:yr_end) {
     file_pth <- paste("team_stats/",year,".csv",sep="")
-    df.temp <- read.csv(file_pth, header = TRUE)
+    df.temp <- read.csv(file_pth, header = TRUE, stringsAsFactors = FALSE)
     df.temp$Season <- year
     
     # check for missing data and ensure consistent formatting
@@ -75,7 +77,7 @@ loadStandingsData <- function(yr_start, yr_end) {
                         Mar=df.temp$Mar,Apr=df.temp$Apr,Season=df.temp$Season)
     
     # combine all seasons into one large data frame
-    df <- data.frame(rbind(as.matrix(df), as.matrix(df.temp)))
+    df <- data.frame(rbind(df, df.temp))
   }
   
   # split 'Overall' into W and L columns in df
@@ -93,18 +95,17 @@ loadStandingsData <- function(yr_start, yr_end) {
 #############################################################
 #############   Load Player Stats Total Data   ##############
 #############################################################
-loadTotalsData <- function(yr_start, yr_end) {
+loadTotalsData <- function(yr_start, yr_end, normalize) {
   # creating final data frame and setting variable types for the columns
   df <- data.frame(Rk=integer(),Player=character(),Pos=character(),Age=double(),Tm=character(),
-                   G=double(),GS=double(),MP=double(),FG=double(),FGA=double(),FG.=double(),
-                   X3P=double(),X3PA=double(),X3P.=double(),X2P=double(),X2PA=double(),
-                   X2P.=double(),eFG.=double(),FT=double(),FTA=double(),FT.=double(),ORB=double(),
+                   G=double(),GS=double(),MP=double(),FGM=double(),FGA=double(),FGperc=double(),
+                   ThreePM=double(),ThreePA=double(),ThreePperc=double(),TwoPM=double(),TwoPA=double(),
+                   TwoPperc=double(),eFGperc=double(),FTM=double(),FTA=double(),FTperc=double(),ORB=double(),
                    DRB=double(),TRB=double(),AST=double(),STL=double(),BLK=double(),TOV=double(),
                    PF=double(),PTS=double(),Season=integer())
   
   # loop through each year's csv file and load data
   for (year in yr_start:yr_end) {
-    year <- 2019
     file_pth <- paste("player_stats_totals/",year,".csv",sep="")
     df.temp <- read.csv(file_pth, header = TRUE)
     df.temp$Season <- year
@@ -121,8 +122,73 @@ loadTotalsData <- function(yr_start, yr_end) {
       df.temp$Player[i]<-name
     }
     
+    # rename column names
+    df.temp <- data.frame(Rk=df.temp$Rk,Player=df.temp$Player,Pos=df.temp$Pos,Age=df.temp$Age,Tm=df.temp$Tm,
+                      G=df.temp$G,GS=df.temp$GS,MP=df.temp$MP,FGM=df.temp$FG,FGA=df.temp$FGA,FGperc=df.temp$FG.,
+                      ThreePM=df.temp$X3P,ThreePA=df.temp$X3PA,ThreePperc=df.temp$X3P.,TwoPM=df.temp$X2P,
+                      TwoPA=df.temp$X2PA,TwoPperc=df.temp$X2P.,eFGperc=df.temp$eFG.,FTM=df.temp$FT,
+                      FTA=df.temp$FTA,FTperc=df.temp$FT.,ORB=df.temp$ORB,DRB=df.temp$DRB,TRB=df.temp$TRB,
+                      AST=df.temp$AST,STL=df.temp$STL,BLK=df.temp$BLK,TOV=df.temp$TOV,PF=df.temp$PF,
+                      PTS=df.temp$PTS,Season=df.temp$Season)
+    
     # combine all seasons into one large data frame
-    df <- data.frame(rbind(as.matrix(df), as.matrix(df.temp)))
+    df <- data.frame(rbind(df, df.temp))
+  }
+  
+  # remove TOT seasons (rows that consolidated totals for players who played for multiple teams in 1 season)
+  df<-df[which(df$Tm!="TOT"),]
+  # remove rows with missing observations
+  df<-df[complete.cases(df), ]
+  # remove observations without minimum games
+  df <- df[which(df$G > 41),]
+  
+  # normalize data
+  if (normalize==TRUE){
+    for (year in levels(as.factor(df$Season))) {
+      for (idx in c(4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30)) {
+        df.yr_subset <- df[which(df$Season==year),]
+        df[which(df$Season==year),][,idx]<-df.yr_subset[,idx]/max(df.yr_subset[,idx])
+        df[,idx]<-round(df[,idx], digits = 3)
+      }
+    }
+  }
+  
+  # fix team strings
+  # standings have full team name, player stats have abbreviated
+  abbrev<-c("ATL","BOS","BRK","BUF","CHA","CHH","CHI","CHO","CLE","DAL","DEN","DET","GSW",
+            "HOU","IND","LAC","LAL","MEM","MIA","MIL","MIN","NJN","NOH","NOJ","NOK","NOP",
+            "NYK","NYN","OKC","ORL","PHI","PHO","POR","SAC","SAS","SDC","SEA","TOR","UTA",
+            "VAN","WAS","WSB","KCK")
+  
+  fullnames<-c("Atlanta Hawks","Boston Celtics","Brooklyn Nets","Buffalo Braves","Charlotte Bobcats",
+               "Charlotte Hornets","Chicago Bulls","Charlotte Hornets","Cleveland Cavaliers",
+               "Dallas Mavericks","Denver Nuggets","Detroit Pistons","Golden State Warriors",
+               "Houston Rockets","Indiana Pacers","Los Angeles Clippers","Los Angeles Lakers",
+               "Memphis Grizzlies","Miami Heat","Milwaukee Bucks","Minnesota Timberwolves",
+               "New Jersey Nets","New Orleans Hornets","New Orleans Jazz",
+               "New Orleans/Oklahoma City Hornets","New Orleans Pelicans","New York Knicks",
+               "New York Nets","Oklahoma City Thunder","Orlando Magic","Philadelphia 76ers","Phoenix Suns",
+               "Portland Trail Blazers","Sacramento Kings","San Antonio Spurs","San Diego Clippers",
+               "Seattle SuperSonics","Toronto Raptors","Utah Jazz","Vancouver Grizzlies",
+               "Washington Wizards","Washington Bullets","Kansas City Kings")
+  names(fullnames)<-abbrev
+  
+  # add team wins to player data 
+  df$TeamWins<-0
+  for (team_abbrev in levels(as.factor(df$Tm))) {
+    for (season in levels(as.factor(df$Season))) {
+      team_name<-fullnames[team_abbrev]
+      team_roster<-df[which(as.character(df$Tm)==team_abbrev & as.character(df$Season)==season),]
+      if (dim(team_roster)[1]!=0) {
+        team_roster$TeamWins<-data_standings[which(as.character(data_standings$Team)==team_name & as.character(data_standings$Season)==season),]$Wins
+      }
+      df[which(as.character(df$Tm)==team_abbrev & as.character(df$Season)==season),]<-team_roster
+    }
+  }
+  df$TeamWins<-type.convert(df$TeamWins)
+  df <- df[,c(1,2,31,32,seq(3,30)),]
+  
+  return(df)
 }
 
 ````

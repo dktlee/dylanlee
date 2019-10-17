@@ -675,7 +675,7 @@ head(data_player_totals[sample(nrow(data_player_totals), 10), ], 10)
 head(data_player_pergame[sample(nrow(data_player_pergame), 10), ], 10)
 head(data_player_adv[sample(nrow(data_player_adv), 10), ], 10)
 head(data_player_career[sample(nrow(data_player_career), 10), ], 10)
-````
+```
 Data was collected from the well known third-party Basketball-Reference.com. I chose to collect data from this source
 because of its comprehensive database of historical player and team statistics, as well as the easy accesiblity
 (Basketball Reference allows me to download the data as CSV files). The data is well formatted and only minor processing
@@ -685,7 +685,7 @@ All-NBA selection. I only considered All-NBA selections from the 1999-2000 seaso
 the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
 
 
-```{r Data Analysis}
+```{r Data Analysis- Part 1}
 # to see if we can remove data points from the large data set, one logical check is to see what's the
 # least number of games played by an All-NBA player
 games.totals <- ggplot(data_player_totals, aes(x=GP,y=AllNba)) + geom_point() + ggtitle("Total Stats")
@@ -698,15 +698,10 @@ grid.arrange(games.totals,games.pergame,games.adv,ncol=3)
 data_player_totals <- data_player_totals[which(data_player_totals$GP>40),]
 data_player_pergame <- data_player_pergame[which(data_player_pergame$GP>40),]
 data_player_adv <- data_player_adv[which(data_player_adv$GP>40),]
+# we go from having about 8500-10000 data points to about 5700-6200 data points
+```
 
-# cat("Player Totals Data:",dim(data_player_totals)[1],"by",dim(data_player_totals)[2],"\n")
-# data_player_totals %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
-# cat("\nPlayer Per Game Data:",dim(data_player_pergame)[1],"by",dim(data_player_pergame)[2],"\n")
-# data_player_pergame %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
-# cat("\nPlayer Advanced Stat Data:",dim(data_player_adv)[1],"by",dim(data_player_adv)[2],"\n")
-# # the summary statistics show a large range of values for any given statistic, as expected
-# # we are dealing with a large data set: about 8500-10400 rows and 30-33 columns
-
+```{r Data Analysis- Part 2}
 # to determine which stats might be correlated with winning an All-NBA selection for a given season
 corr.matrix.totals <- cor(data_player_totals[,c("AllNba","TeamWins","PosNum","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM",
                                                 "ThreePA","ThreePperc","TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA",
@@ -720,23 +715,68 @@ corr.matrix.adv <- cor(data_player_adv[,c("AllNba","TeamWins","PosNum","Age","GP
 corrplot(corr.matrix.totals[1,2:29,drop=FALSE], title="Correlation: Player Totals", mar=c(0,0,1,0))
 corrplot(corr.matrix.pergame[1,2:29,drop=FALSE], title="Correlation: Player Per Game", mar=c(0,0,1,0))
 corrplot(corr.matrix.adv[1,2:26,drop=FALSE], title="Correlation: Player Advanced", mar=c(0,0,1,0))
-# the correlation plots of Player Totals and Player Per Game stats show weak/slightly positive correlation between 
+# the correlation plots of Player Totals and Player Per Game stats show slightly positive correlation between 
 # winning an All-NBA selection and GS, MP, FGM, TwoPM, FTM, FTA, TRB, AST, STL, PTS - mainly scoring stats
 # while defensive stats are slightly less correlated - fairly trivial conclusion
 # looking at the Advanced Player stats is a bit more interesting, we see that player effeciency rating (PER), usage
 # percentage, win shares, plus minus, and value over replacement player are more strongly correlated with winning
 # an All-NBA selection for a given season.
+```
 
-# looking at the total number of All-NBA selections a player wins in their career compared to their career stats
-# scatterplots between All-NBA players and their career stats
-ggpairs.totals <- ggpairs(data_player_totals, columns=c(4,7,8,10:34,6))
-ggpairs.pergame <- ggpairs(data_player_pergame, columns=c(4,7,8,10:34,6))
-ggpairs.adv <- ggpairs(data_player_adv, columns=c(4,7,8,10:31,6))
-scatter.totals <- lapply(1:ggpairs.totals$ncol, function(j) getPlot(ggpairs.totals,i=28,j=j))
-scatter.pergame <- lapply(1:ggpairs.pergame$ncol, function(j) getPlot(ggpairs.pergame,i=28,j=j))
-scatter.adv <- lapply(1:ggpairs.adv$ncol, function(j) getPlot(ggpairs.adv,i=25,j=j))
+```{r Data Analysis- Part 3}
+# looking at the distribution of players comparing players who make the All-NBA team against those
+# who didn't, we consistently see that All-NBA players are performing above average in the 
+# counting stats another fairly trivial conclusion
+# what's more interesting is the distribution of the shooting percentages (FG, 3P, 2P, and FT)
+# we see that All-NBA players have similar distributions as non All-NBA players and are not
+# consistently shooting more efficiently than average
+# these findings support the results from the correlation plots
 
-````
+# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
+# by the stat on the x-axis, split between All-NBA players and non All-NBA players
+ggpairs.totals <- ggpairs(data_player_totals, columns=c(4,5,9,11:35,7))
+ggpairs.pergame <- ggpairs(data_player_pergame, columns=c(4,5,9,11:35,7))
+ggpairs.adv <- ggpairs(data_player_adv, columns=c(4,5,9,11:32,7))
+scatter.totals <- lapply(1:ggpairs.totals$ncol, function(j) getPlot(ggpairs.totals,i=29,j=j))
+scatter.pergame <- lapply(1:ggpairs.pergame$ncol, function(j) getPlot(ggpairs.pergame,i=29,j=j))
+scatter.adv <- lapply(1:ggpairs.adv$ncol, function(j) getPlot(ggpairs.adv,i=26,j=j))
+# scatter.totals
+scatter.pergame
+scatter.adv
+
+# cat("Player Totals Data:",dim(data_player_totals)[1],"by",dim(data_player_totals)[2],"\n")
+# data_player_totals %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
+# cat("\nPlayer Per Game Data:",dim(data_player_pergame)[1],"by",dim(data_player_pergame)[2],"\n")
+# data_player_pergame %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
+# cat("\nPlayer Advanced Stat Data:",dim(data_player_adv)[1],"by",dim(data_player_adv)[2],"\n")
+# # the summary statistics show a large range of values for any given statistic, as expected
+# # we are dealing with a large data set: about 8500-10400 rows and 30-33 columns
+
+```
+
+```{r Data Analysis- Part 4}
+# lets look at indicators for Total Number of All-NBA Selections over the course of a player's career
+corr.matrix.career <- cor(data_player_career[,c("AllNba","TeamWins","PosNum","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM",
+                                                "ThreePA","ThreePperc","TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA",
+                                                "FTperc","ORB","DRB","TRB","AST","STL","BLK","TOV","PF","PTS")])
+corrplot(corr.matrix.career[1,2:29,drop=FALSE], title="Correlation: Player Career", mar=c(0,0,1,0))
+
+ggpairs.career <- ggpairs(data_player_career, columns = c(4,8,9,11:35,7), mapping=ggplot2::aes(colour = AllNba))
+scatter.career <- lapply(1:ggpairs.career$ncol, function(j) getPlot(ggpairs.career,i=29,j=j))
+scatter.career
+
+
+
+#####################################################
+# notes: continue to model the predict a single seasons All-NBA winnners based on their stats
+# extrapolate the estimates for the players based on their current age/year in the NBA by the estimated
+# number of remaining seasons
+# support this with the evidence from the career totals that more stats = more All-NBA selections
+
+# incorporate advanced stats into the same dataframe as counting stats
+
+```
+
 
 
 ```{r Modelling}

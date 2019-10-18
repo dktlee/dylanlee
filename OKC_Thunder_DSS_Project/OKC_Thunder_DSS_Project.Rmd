@@ -16,7 +16,6 @@ library(ggplot2)
 library(gridExtra)
 ```
 
-
 ```{r Data Collection and Processing}
 # historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
 # however, only consider All-NBA selections from the 1999-2000 season and onwards
@@ -684,10 +683,511 @@ player advanced statistics, player total stats, player per game stats, and a lis
 All-NBA selection. I only considered All-NBA selections from the 1999-2000 season and onwards, but collected data starting with
 the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
 
+``` {r Data Analysis: Part 1 - Data Summary}
+# look at the distribution of the stats we have 
+cat("Player Totals Data:",dim(data_player_totals)[1],"rows by",dim(data_player_totals)[2],"columns\n")
+data_player_totals %>% select(TeamWins,Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,ThreePperc,
+                              TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,FTperc,ORB,DRB,TRB,AST,STL,
+                              BLK,PTS) %>% summary()
+cat("\nPlayer Per Game Data:",dim(data_player_pergame)[1],"rows by",dim(data_player_pergame)[2],"columns\n")
+data_player_pergame %>% select(TeamWins,Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,ThreePperc,
+                              TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,FTperc,ORB,DRB,TRB,AST,STL,
+                              BLK,PTS) %>% summary()
+cat("\nPlayer Advanced Stat Data:",dim(data_player_adv)[1],"rows by",dim(data_player_adv)[2],"columns\n")
+data_player_adv %>% select(TeamWins,Age,GP,MP,PER,TSperc,ThreePAr,FTr,ORBperc,DRBperc,TRBperc,
+                           ASTperc,STLperc,BLKperc,TOVperc,USGperc,OWS,DWS,WS,WSper48,OBPM,
+                           DBPM,BPM,VORP) %>% summary()
+# the summary statistics show a large range of values for any given statistic, as expected
+# I should normalize each statistic by season by dividing by the season's max, so that each
+# statistic now lies between (0,1), and the stat leader being the max: 1
+# this is because we don't want any outliers that are too low or too high 
+# in a stat category which can hurt the model
+```
+
+``` {r Data Analysis: Part 2 - Distribution, message=FALSE}
+# we see that we are working with quite a large data set (~8500-10500 rows by 32-35 columns)
+# by looking at the distribution of our data, comparing All-NBA players against the rest of the leauge,
+# we may find ways to filter out data points that could potentially dilute the model's ability to
+# showcase elite players, and instead flood the model with bench/rotational players
+
+# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
+# by the stat on the x-axis, split between All-NBA players and non All-NBA players
+
+# note: there might be a more efficient way to code this section, but I sacrificed ease for aesthetics
+# since this will be generating a report
+hist.totals.PosNum <- ggplot(data_player_totals, aes(x=PosNum,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TeamWins <- ggplot(data_player_totals, aes(x=TeamWins,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.Age <- ggplot(data_player_totals, aes(x=Age,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.GP <- ggplot(data_player_totals, aes(x=GP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.GS <- ggplot(data_player_totals, aes(x=GS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.MP <- ggplot(data_player_totals, aes(x=MP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FGM <- ggplot(data_player_totals, aes(x=FGM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FGA <- ggplot(data_player_totals, aes(x=FGA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FGperc <- ggplot(data_player_totals, aes(x=FGperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.ThreePM <- ggplot(data_player_totals, aes(x=ThreePM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.ThreePA <- ggplot(data_player_totals, aes(x=ThreePA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.ThreePperc <- ggplot(data_player_totals, aes(x=ThreePperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TwoPM <- ggplot(data_player_totals, aes(x=TwoPM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TwoPA <- ggplot(data_player_totals, aes(x=TwoPA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TwoPperc <- ggplot(data_player_totals, aes(x=TwoPperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.eFGperc <- ggplot(data_player_totals, aes(x=eFGperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FTM <- ggplot(data_player_totals, aes(x=FTM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FTA <- ggplot(data_player_totals, aes(x=FTA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.FTperc <- ggplot(data_player_totals, aes(x=FTperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.ORB <- ggplot(data_player_totals, aes(x=ORB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.DRB <- ggplot(data_player_totals, aes(x=DRB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TRB <- ggplot(data_player_totals, aes(x=TRB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.AST <- ggplot(data_player_totals, aes(x=AST,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.STL <- ggplot(data_player_totals, aes(x=STL,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.BLK <- ggplot(data_player_totals, aes(x=BLK,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.TOV <- ggplot(data_player_totals, aes(x=TOV,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.PF <- ggplot(data_player_totals, aes(x=PF,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.PTS <- ggplot(data_player_totals, aes(x=PTS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Total Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.PosNum <- ggplot(data_player_pergame, aes(x=PosNum,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TeamWins <- ggplot(data_player_pergame, aes(x=TeamWins,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.Age <- ggplot(data_player_pergame, aes(x=Age,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.GP <- ggplot(data_player_pergame, aes(x=GP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.GS <- ggplot(data_player_pergame, aes(x=GS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.MP <- ggplot(data_player_pergame, aes(x=MP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FGM <- ggplot(data_player_pergame, aes(x=FGM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FGA <- ggplot(data_player_pergame, aes(x=FGA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FGperc <- ggplot(data_player_pergame, aes(x=FGperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.ThreePM <- ggplot(data_player_pergame, aes(x=ThreePM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.ThreePA <- ggplot(data_player_pergame, aes(x=ThreePA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.ThreePperc <- ggplot(data_player_pergame, aes(x=ThreePperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TwoPM <- ggplot(data_player_pergame, aes(x=TwoPM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TwoPA <- ggplot(data_player_pergame, aes(x=TwoPA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TwoPperc <- ggplot(data_player_pergame, aes(x=TwoPperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.eFGperc <- ggplot(data_player_pergame, aes(x=eFGperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FTM <- ggplot(data_player_pergame, aes(x=FTM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FTA <- ggplot(data_player_pergame, aes(x=FTA,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.FTperc <- ggplot(data_player_pergame, aes(x=FTperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.ORB <- ggplot(data_player_pergame, aes(x=ORB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.DRB <- ggplot(data_player_pergame, aes(x=DRB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TRB <- ggplot(data_player_pergame, aes(x=TRB,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.AST <- ggplot(data_player_pergame, aes(x=AST,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.STL <- ggplot(data_player_pergame, aes(x=STL,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.BLK <- ggplot(data_player_pergame, aes(x=BLK,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.TOV <- ggplot(data_player_pergame, aes(x=TOV,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.PF <- ggplot(data_player_pergame, aes(x=PF,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.pergame.PTS <- ggplot(data_player_pergame, aes(x=PTS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Per Game Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.PosNum <- ggplot(data_player_adv, aes(x=PosNum,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.TeamWins <- ggplot(data_player_adv, aes(x=TeamWins,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.Age <- ggplot(data_player_adv, aes(x=Age,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.GP <- ggplot(data_player_adv, aes(x=GP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.MP <- ggplot(data_player_adv, aes(x=MP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.PER <- ggplot(data_player_adv, aes(x=PER,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.TSperc <- ggplot(data_player_adv, aes(x=TSperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.ThreePAr <- ggplot(data_player_adv, aes(x=ThreePAr,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.FTr <- ggplot(data_player_adv, aes(x=FTr,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.ORBperc <- ggplot(data_player_adv, aes(x=ORBperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.DRBperc <- ggplot(data_player_adv, aes(x=DRBperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.TRBperc <- ggplot(data_player_adv, aes(x=TRBperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.ASTperc <- ggplot(data_player_adv, aes(x=ASTperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.STLperc <- ggplot(data_player_adv, aes(x=STLperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.BLKperc <- ggplot(data_player_adv, aes(x=BLKperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.TOVperc <- ggplot(data_player_adv, aes(x=TOVperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.USGperc <- ggplot(data_player_adv, aes(x=USGperc,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.OWS <- ggplot(data_player_adv, aes(x=OWS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.DWS <- ggplot(data_player_adv, aes(x=DWS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.WS <- ggplot(data_player_adv, aes(x=WS,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.WSper48 <- ggplot(data_player_adv, aes(x=WSper48,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.OBPM <- ggplot(data_player_adv, aes(x=OBPM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.DBPM <- ggplot(data_player_adv, aes(x=DBPM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.BPM <- ggplot(data_player_adv, aes(x=BPM,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.adv.VORP <- ggplot(data_player_adv, aes(x=VORP,fill=AllNba,color=AllNba)) + 
+                        geom_histogram(position = "identity", alpha = 0.5) +
+                        ggtitle("Advanced Stats") + 
+                        theme(plot.title = element_text(hjust = 0.5))
+hist.totals.PosNum
+hist.totals.TeamWins
+hist.totals.Age
+hist.totals.GP
+hist.totals.GS
+hist.totals.MP
+hist.totals.FGM
+hist.totals.FGA
+hist.totals.FGperc
+hist.totals.ThreePM
+hist.totals.ThreePA
+hist.totals.ThreePperc
+hist.totals.TwoPM
+hist.totals.TwoPA
+hist.totals.TwoPperc
+hist.totals.eFGperc
+hist.totals.FTM
+hist.totals.FTA
+hist.totals.FTperc
+hist.totals.ORB
+hist.totals.DRB
+hist.totals.TRB
+hist.totals.AST
+hist.totals.STL
+hist.totals.BLK
+hist.totals.TOV
+hist.totals.PF
+hist.totals.PTS
+hist.pergame.PosNum
+hist.pergame.TeamWins
+hist.pergame.Age
+hist.pergame.GP
+hist.pergame.GS
+hist.pergame.MP
+hist.pergame.FGM
+hist.pergame.FGA
+hist.pergame.FGperc
+hist.pergame.ThreePM
+hist.pergame.ThreePA
+hist.pergame.ThreePperc
+hist.pergame.TwoPM
+hist.pergame.TwoPA
+hist.pergame.TwoPperc
+hist.pergame.eFGperc
+hist.pergame.FTM
+hist.pergame.FTA
+hist.pergame.FTperc
+hist.pergame.ORB
+hist.pergame.DRB
+hist.pergame.TRB
+hist.pergame.AST
+hist.pergame.STL
+hist.pergame.BLK
+hist.pergame.TOV
+hist.pergame.PF
+hist.pergame.PTS
+hist.adv.PosNum
+hist.adv.TeamWins
+hist.adv.Age
+hist.adv.GP
+hist.adv.MP
+hist.adv.PER
+hist.adv.TSperc
+hist.adv.ThreePAr
+hist.adv.FTr
+hist.adv.ORBperc
+hist.adv.DRBperc
+hist.adv.TRBperc
+hist.adv.ASTperc
+hist.adv.STLperc
+hist.adv.BLKperc
+hist.adv.TOVperc
+hist.adv.USGperc
+hist.adv.OWS
+hist.adv.DWS
+hist.adv.WS
+hist.adv.WSper48
+hist.adv.OBPM
+hist.adv.DBPM
+hist.adv.BPM
+hist.adv.VORP
+
+# looking at the distribution of players comparing players who make the All-NBA team against those
+# who didn't, we consistently see that All-NBA players are performing above average in the 
+# counting stats - another fairly trivial conclusion
+# what's more interesting is the distribution of the shooting percentages (FG%, 3P%, 2P%, and FT%)
+# we see that All-NBA players have similar distributions as non All-NBA players and are not
+# consistently shooting more efficiently than average
+# looking at the advanced stats we see All-NBA players have a higher PER, USGperc, WS, BPM, and VORP
+# than average
+# also notice that All-NBA players have about more than 48 Games Played, more than 23 Games Started,
+# and more than 1600 minutes played (28 minutes per game) in a given season. There is also
+# significant noise from the larger dataset including bench/rotational players that do not meet 
+# this threshold. I chose to remove these datapoints from the dataset because I want to train
+# my model based on players that have a realistic chance at winning an All-NBA selection
+# filtered datapoints based on Minutes Playued to be more restrictive, so considered players
+# who have more than 1600 minutes played in a given season for the data_player_totals & 
+# data_player adv datasets / more than 28 mintues per game for the data_player_pergame dataset
+data_player_totals <- data_player_totals[which(data_player_totals$MP>=1600),]
+data_player_pergame <- data_player_pergame[which(data_player_pergame$MP>=28),]
+data_player_adv <- data_player_adv[which(data_player_adv$MP>=28),]
+```
+
+
+
+
+
+
+
+
+
+``` {r Data Analysis: Part 2 - Distribution}
+# we see that we are working with quite a large data set (~8500-10500 rows by 32-35 columns)
+# by looking at the distribution of our data, comparing All-NBA players against the rest of the leauge,
+# we may find ways to filter out data points that could potentially dilute the model's ability to
+# showcase elite players, but instead flood the model with bench/rotational players
+
+# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
+# by the stat on the x-axis, split between All-NBA players and non All-NBA players
+ggpairs.totals <- ggpairs(data_player_totals, columns=c(4,5,9,11:35,7))
+ggpairs.pergame <- ggpairs(data_player_pergame, columns=c(4,5,9,11:35,7))
+ggpairs.adv <- ggpairs(data_player_adv, columns=c(4,5,9,11:32,7))
+histo.totals <- lapply(1:ggpairs.totals$ncol, function(j) getPlot(ggpairs.totals,i=29,j=j))
+histo.pergame <- lapply(1:ggpairs.pergame$ncol, function(j) getPlot(ggpairs.pergame,i=29,j=j))
+histo.adv <- lapply(1:ggpairs.adv$ncol, function(j) getPlot(ggpairs.adv,i=26,j=j))
+histo.totals
+histo.pergame
+histo.adv
+
+# looking at the distribution of players comparing players who make the All-NBA team against those
+# who didn't, we consistently see that All-NBA players are performing above average in the 
+# counting stats - another fairly trivial conclusion
+# what's more interesting is the distribution of the shooting percentages (FG%, 3P%, 2P%, and FT%)
+# we see that All-NBA players have similar distributions as non All-NBA players and are not
+# consistently shooting more efficiently than average
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r Data Analysis- Part 1}
-# to see if we can remove data points from the large data set, one logical check is to see what's the
-# least number of games played by an All-NBA player
 games.totals <- ggplot(data_player_totals, aes(x=GP,y=AllNba)) + geom_point() + ggtitle("Total Stats")
 games.pergame <- ggplot(data_player_pergame, aes(x=GP,y=AllNba)) + geom_point() + ggtitle("Per Game Stats")
 games.adv <- ggplot(data_player_adv, aes(x=GP,y=AllNba)) + geom_point() + ggtitle("Advanced Stats")
@@ -700,8 +1200,33 @@ data_player_pergame <- data_player_pergame[which(data_player_pergame$GP>40),]
 data_player_adv <- data_player_adv[which(data_player_adv$GP>40),]
 # we go from having about 8500-10000 data points to about 5700-6200 data points
 ```
+```{r Data Analysis- Part 1}
+# to see if we can remove data points from the large data set, one logical check is to see what's the
+# least number of games played by an All-NBA player
 
-```{r Data Analysis- Part 2}
+# looking at the distribution of players comparing players who make the All-NBA team against those
+# who didn't, we consistently see that All-NBA players are performing above average in the 
+# counting stats - another fairly trivial conclusion
+# what's more interesting is the distribution of the shooting percentages (FG%, 3P%, 2P%, and FT%)
+# we see that All-NBA players have similar distributions as non All-NBA players and are not
+# consistently shooting more efficiently than average
+
+
+# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
+# by the stat on the x-axis, split between All-NBA players and non All-NBA players
+ggpairs.totals <- ggpairs(data_player_totals, columns=c(4,5,9,11:35,7))
+ggpairs.pergame <- ggpairs(data_player_pergame, columns=c(4,5,9,11:35,7))
+ggpairs.adv <- ggpairs(data_player_adv, columns=c(4,5,9,11:32,7))
+histo.totals <- lapply(1:ggpairs.totals$ncol, function(j) getPlot(ggpairs.totals,i=29,j=j))
+histo.pergame <- lapply(1:ggpairs.pergame$ncol, function(j) getPlot(ggpairs.pergame,i=29,j=j))
+histo.adv <- lapply(1:ggpairs.adv$ncol, function(j) getPlot(ggpairs.adv,i=26,j=j))
+histo.totals
+histo.pergame
+histo.adv
+```
+
+
+```{r Data Analysis: Part 3 - Correlation}
 # to determine which stats might be correlated with winning an All-NBA selection for a given season
 corr.matrix.totals <- cor(data_player_totals[,c("AllNba","TeamWins","PosNum","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM",
                                                 "ThreePA","ThreePperc","TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA",
@@ -723,36 +1248,6 @@ corrplot(corr.matrix.adv[1,2:26,drop=FALSE], title="Correlation: Player Advanced
 # an All-NBA selection for a given season.
 ```
 
-```{r Data Analysis- Part 3}
-# looking at the distribution of players comparing players who make the All-NBA team against those
-# who didn't, we consistently see that All-NBA players are performing above average in the 
-# counting stats another fairly trivial conclusion
-# what's more interesting is the distribution of the shooting percentages (FG, 3P, 2P, and FT)
-# we see that All-NBA players have similar distributions as non All-NBA players and are not
-# consistently shooting more efficiently than average
-# these findings support the results from the correlation plots
-
-# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
-# by the stat on the x-axis, split between All-NBA players and non All-NBA players
-ggpairs.totals <- ggpairs(data_player_totals, columns=c(4,5,9,11:35,7))
-ggpairs.pergame <- ggpairs(data_player_pergame, columns=c(4,5,9,11:35,7))
-ggpairs.adv <- ggpairs(data_player_adv, columns=c(4,5,9,11:32,7))
-scatter.totals <- lapply(1:ggpairs.totals$ncol, function(j) getPlot(ggpairs.totals,i=29,j=j))
-scatter.pergame <- lapply(1:ggpairs.pergame$ncol, function(j) getPlot(ggpairs.pergame,i=29,j=j))
-scatter.adv <- lapply(1:ggpairs.adv$ncol, function(j) getPlot(ggpairs.adv,i=26,j=j))
-# scatter.totals
-scatter.pergame
-scatter.adv
-
-# cat("Player Totals Data:",dim(data_player_totals)[1],"by",dim(data_player_totals)[2],"\n")
-# data_player_totals %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
-# cat("\nPlayer Per Game Data:",dim(data_player_pergame)[1],"by",dim(data_player_pergame)[2],"\n")
-# data_player_pergame %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
-# cat("\nPlayer Advanced Stat Data:",dim(data_player_adv)[1],"by",dim(data_player_adv)[2],"\n")
-# # the summary statistics show a large range of values for any given statistic, as expected
-# # we are dealing with a large data set: about 8500-10400 rows and 30-33 columns
-
-```
 
 ```{r Data Analysis- Part 4}
 # lets look at indicators for Total Number of All-NBA Selections over the course of a player's career
@@ -762,8 +1257,8 @@ corr.matrix.career <- cor(data_player_career[,c("AllNba","TeamWins","PosNum","Ag
 corrplot(corr.matrix.career[1,2:29,drop=FALSE], title="Correlation: Player Career", mar=c(0,0,1,0))
 
 ggpairs.career <- ggpairs(data_player_career, columns = c(4,8,9,11:35,7), mapping=ggplot2::aes(colour = AllNba))
-scatter.career <- lapply(1:ggpairs.career$ncol, function(j) getPlot(ggpairs.career,i=29,j=j))
-scatter.career
+histo.career <- lapply(1:ggpairs.career$ncol, function(j) getPlot(ggpairs.career,i=29,j=j))
+histo.career
 
 
 
@@ -773,23 +1268,66 @@ scatter.career
 # number of remaining seasons
 # support this with the evidence from the career totals that more stats = more All-NBA selections
 
-# incorporate advanced stats into the same dataframe as counting stats
+# incorporate advanced stats into the same dataframe as counting
 
 ```
 
 
+``` {r Data Analysis- Part 5}
+# look at the distribution of the stats we have 
+cat("Player Totals Data:","\n")
+data_player_totals %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
+cat("\nPlayer Per Game Data:","\n")
+data_player_pergame %>% select(Age,MP,FGM,ThreePM,FTM,TRB,AST,STL,BLK,PTS) %>% summary()
+cat("\nPlayer Advanced Stat Data:","\n")
+# the summary statistics show a large range of values for any given statistic, as expected
+# should normalize each statistic by season by dividing by the season's max, so that each
+# statistic now lies between (0,1), and the stat leader being the max: 1
+# this is because we don't want outlier's being too low or too high in a stat category
+# hurting the model
+
+# Player Stat Per Game
+for (year in levels(as.factor(data_player_pergame$Season))) {
+  for (index in c(5,9,11:35)) {
+        data_year <- data_player_pergame[which(data_player_pergame$Season==year),]
+        data_player_pergame[which(data_player_pergame$Season==year),][,index] <- data_year[,index]/max(data_year[,index])
+        data_player_pergame[,index] <- round(data_player_pergame[,index], digits = 3)
+  }
+}
+
+# Player Stat Total
+for (year in levels(as.factor(data_player_totals$Season))) {
+  for (index in c(5,9,11:35)) {
+        data_year <- data_player_totals[which(data_player_totals$Season==year),]
+        data_player_totals[which(data_player_totals$Season==year),][,index] <- data_year[,index]/max(data_year[,index])
+        data_player_totals[,index] <- round(data_player_totals[,index], digits = 3)
+  }
+}
+
+# Player Stat Advanced
+for (year in levels(as.factor(data_player_adv$Season))) {
+  for (index in c(5,9,11:32)) {
+        data_year <- data_player_adv[which(data_player_adv$Season==year),]
+        data_player_adv[which(data_player_adv$Season==year),][,index] <- data_year[,index]/max(data_year[,index])
+        data_player_adv[,index] <- round(data_player_adv[,index], digits = 3)
+  }
+}
+
+```
+
 
 ```{r Modelling}
-````
+
+```
 
 
 ```{r Cross Validation}
-````
+```
 
 
 ```{r Prediction}
-````
+```
 
 
 ```{r Further Considerations}
-````
+```

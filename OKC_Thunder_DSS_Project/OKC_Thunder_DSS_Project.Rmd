@@ -14,6 +14,7 @@ library(corrplot)
 library(GGally)
 library(ggplot2)
 library(gridExtra)
+library(viridis)
 ```
 
 ```{r Helper Functions}
@@ -1187,7 +1188,7 @@ for (year in levels(as.factor(data_player_adv_filtered$Season))) {
 }
 ```
 
-```{r Modelling, waring = FALSE}
+```{r Modelling, waring = FALSE, message = FALSE}
 # since the All-NBA team consists for 6 guards, 6 forwards, and 3 centers, I decided to model each position
 # seperately because the counting stats between guards, forwards, and centers differ quite significantly
 # I'll use the 2000-2018 data to train the model and measure the accuracy against the predictions 
@@ -1205,42 +1206,47 @@ center_data_totals <- data_player_totals_filtered[which(data_player_totals_filte
 lm.guard.total.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                           data = guard_data_totals[which(guard_data_totals$Season != 2019),])
-lm.guard.total.reduced <- step(lm.guard.total.full, trace = FALSE)
-summary(lm.guard.total.reduced)
+# lm.guard.total.reduced <- step(lm.guard.total.full)
+lm.guard.total.reduced <- lm(TotalAllNba ~ TeamWins+GP+GS+MP+FGM+FGA+FGperc+TwoPM+TwoPA+TwoPperc+
+                                          eFGperc+FTM+FTperc+ORB+TRB+AST+STL+BLK+TOV+PF,
+                             data = guard_data_totals[which(guard_data_totals$Season != 2019),])
+# summary(lm.guard.total.reduced)
 lm.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], lm.guard.total.reduced)[1:6,]
 lm.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], lm.guard.total.reduced)[1:6,]
 
 # forward
 lm.forward.total.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                          data = forward_data_totals[which(forward_data_totals$Season != 2019),])
-lm.forward.total.reduced <- step(lm.forward.total.full, trace = FALSE)
-summary(lm.forward.total.reduced)
+                            data = forward_data_totals[which(forward_data_totals$Season != 2019),])
+# lm.forward.total.reduced <- step(lm.forward.total.full, trace = 0)
+lm.forward.total.reduced <- lm(TotalAllNba ~ TeamWins+GP+GS+MP+FGperc+TwoPM+TwoPA+TwoPperc+
+                                             eFGperc+FTM+FTperc+ORB+DRB+AST+STL+BLK+TOV+PTS,
+                               data = forward_data_totals[which(forward_data_totals$Season != 2019),])
+# summary(lm.forward.total.reduced)
 lm.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], lm.forward.total.reduced)[1:6,]
 lm.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], lm.forward.total.reduced)[1:6,]
 
 # center
 lm.center.total.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                          data = center_data_totals[which(center_data_totals$Season != 2019),])
-lm.center.total.reduced <- step(lm.center.total.full, trace = FALSE)
-summary(lm.center.total.reduced)
+                           data = center_data_totals[which(center_data_totals$Season != 2019),])
+# lm.center.total.reduced <- step(lm.center.total.full, trace = 0)
+lm.center.total.reduced <- lm(TotalAllNba ~ TeamWins+Age+MP+FGA+FGperc+ThreePA+TwoPM+TwoPA+
+                                            FTA+ORB+TRB+BLK+TOV+PF,
+                              data = center_data_totals[which(center_data_totals$Season != 2019),])
+# summary(lm.center.total.reduced)
 lm.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], lm.center.total.reduced)[1:3,]
 lm.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], lm.center.total.reduced)[1:3,]
-
-lm.total.all_nba_team.full <- rbind(lm.guard.total.full.pred,lm.forward.total.full.pred,lm.center.total.full.pred)
-lm.total.all_nba_team.red <- rbind(lm.guard.total.red.pred,lm.forward.total.red.pred,lm.center.total.red.pred)
-# linear accuracy
-lm.total.full.acc <- calcAccuracy(lm.total.all_nba_team.full)
-lm.total.red.acc <- calcAccuracy(lm.total.all_nba_team.red)
 
 ############### logistic model ###############
 # guard
 log.guard.total.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.guard.total.reduced <- step(log.guard.total.full, trace = FALSE)
-summary(log.guard.total.reduced)
+# log.guard.total.reduced <- step(log.guard.total.full, trace = 0)
+log.guard.total.reduced <- glm(TotalAllNba ~ TeamWins+GPFGM+FGA+FGperc+eFGperc+FTM+TRB+AST+STL+TOV+PF+PTS,
+                               data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
+# summary(log.guard.total.reduced)
 log.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], log.guard.total.reduced)[1:6,]
 log.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], log.guard.total.reduced)[1:6,]
 
@@ -1248,8 +1254,10 @@ log.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data
 log.forward.total.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = forward_data_totals[which(forward_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.forward.total.reduced <- step(log.forward.total.full, trace = FALSE)
-summary(log.forward.total.reduced)
+# log.forward.total.reduced <- step(log.forward.total.full, trace = 0)
+log.forward.total.reduced <- glm(TotalAllNba ~ TeamWins+Age+GP+FGperc+ThreePperc+TwoPM+eFGperc+FTA+FTperc+DRB+AST+BLK+TOV+PF+PTS,
+                                 data = forward_data_totals[which(forward_data_totals$Season != 2019),], family = binomial(link="logit"))
+# summary(log.forward.total.reduced)
 log.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], log.forward.total.reduced)[1:6,]
 log.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], log.forward.total.reduced)[1:6,]
 
@@ -1257,16 +1265,12 @@ log.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forwar
 log.center.total.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = center_data_totals[which(center_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.center.total.reduced <- step(log.center.total.full, trace = FALSE)
-summary(log.center.total.reduced)
+# log.center.total.reduced <- step(log.center.total.full, trace = 0)
+log.center.total.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+FGA+FGperc+ThreePA+TwoPA+TwoPperc+FTA+ORB+DRB+AST+BLK+TOV,
+                            data = center_data_totals[which(center_data_totals$Season != 2019),], family = binomial(link="logit"))
+# summary(log.center.total.reduced)
 log.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], log.center.total.reduced)[1:3,]
 log.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], log.center.total.reduced)[1:3,]
-
-log.total.all_nba_team.full <- rbind(log.guard.total.full.pred,log.forward.total.full.pred,log.center.total.full.pred)
-log.total.all_nba_team.red <- rbind(log.guard.total.red.pred,log.forward.total.red.pred,log.center.total.red.pred)
-# linear accuracy
-log.total.full.acc <- calcAccuracy(log.total.all_nba_team.full)
-log.total.red.acc <- calcAccuracy(log.total.all_nba_team.red)
 
 ##################################################################
 ################   Per Game Stats Model   ################
@@ -1280,8 +1284,11 @@ center_data_pergame <- data_player_pergame_filtered[which(data_player_pergame_fi
 lm.guard.pergame.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                           data = guard_data_pergame[which(guard_data_pergame$Season != 2019),])
-lm.guard.pergame.reduced <- step(lm.guard.pergame.full, trace = FALSE)
-summary(lm.guard.pergame.reduced)
+# lm.guard.pergame.reduced <- step(lm.guard.pergame.full, trace = 0)
+lm.guard.pergame.reduced <- lm(TotalAllNba ~ TeamWins+GS+MP+FGM+FGA+FGperc+ThreePA+TwoPM+TwoPA+TwoPperc+
+                                             eFGperc+FTM+FTA+FTperc+ORB+TRB+AST+STL+BLK+TOV+PF+PTS,
+                               data = guard_data_pergame[which(guard_data_pergame$Season != 2019),])
+# summary(lm.guard.pergame.reduced)
 lm.guard.pergame.full.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_data_pergame$Season == 2019),], lm.guard.pergame.reduced)[1:6,]
 lm.guard.pergame.red.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_data_pergame$Season == 2019),], lm.guard.pergame.reduced)[1:6,]
 
@@ -1289,8 +1296,11 @@ lm.guard.pergame.red.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_da
 lm.forward.pergame.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                           data = forward_data_pergame[which(forward_data_pergame$Season != 2019),])
-lm.forward.pergame.reduced <- step(lm.forward.pergame.full, trace = FALSE)
-summary(lm.forward.pergame.reduced)
+# lm.forward.pergame.reduced <- step(lm.forward.pergame.full, trace = 0)
+lm.forward.pergame.reduced <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+
+                                        eFGperc+FTperc+ORB+TRB+AST+STL+BLK+TOV+PTS,
+                                 data = forward_data_pergame[which(forward_data_pergame$Season != 2019),])
+# summary(lm.forward.pergame.reduced)
 lm.forward.pergame.full.pred <- predAllNbaPlayers(forward_data_pergame[which(forward_data_pergame$Season == 2019),], lm.forward.pergame.reduced)[1:6,]
 lm.forward.pergame.red.pred <- predAllNbaPlayers(forward_data_pergame[which(forward_data_pergame$Season == 2019),], lm.forward.pergame.reduced)[1:6,]
 
@@ -1298,24 +1308,23 @@ lm.forward.pergame.red.pred <- predAllNbaPlayers(forward_data_pergame[which(forw
 lm.center.pergame.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                           data = center_data_pergame[which(center_data_pergame$Season != 2019),])
-lm.center.pergame.reduced <- step(lm.center.pergame.full, trace = FALSE)
-summary(lm.center.pergame.reduced)
+# lm.center.pergame.reduced <- step(lm.center.pergame.full, trace = 0)
+lm.center.pergame.reduced <- lm(TotalAllNba ~ TeamWins+MP+FGM+FGperc+ThreePA+TwoPM+TwoPA+
+                                        FTM+FTA+ORB+DRB+TRB+BLK+TOV+PF+PTS,
+                                data = center_data_pergame[which(center_data_pergame$Season != 2019),])
+# summary(lm.center.pergame.reduced)
 lm.center.pergame.full.pred <- predAllNbaPlayers(center_data_pergame[which(center_data_pergame$Season == 2019),], lm.center.pergame.reduced)[1:3,]
 lm.center.pergame.red.pred <- predAllNbaPlayers(center_data_pergame[which(center_data_pergame$Season == 2019),], lm.center.pergame.reduced)[1:3,]
-
-lm.pergame.all_nba_team.full <- rbind(lm.guard.pergame.full.pred,lm.forward.pergame.full.pred,lm.center.pergame.full.pred)
-lm.pergame.all_nba_team.red <- rbind(lm.guard.pergame.red.pred,lm.forward.pergame.red.pred,lm.center.pergame.red.pred)
-# linear accuracy
-lm.pergame.full.acc <- calcAccuracy(lm.pergame.all_nba_team.full)
-lm.pergame.red.acc <- calcAccuracy(lm.pergame.all_nba_team.red)
 
 ############### logistic model ###############
 # guard
 log.guard.pergame.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = guard_data_pergame[which(guard_data_pergame$Season != 2019),], family = binomial(link="logit"))
-log.guard.pergame.reduced <- step(log.guard.pergame.full, trace = FALSE)
-summary(log.guard.pergame.reduced)
+# log.guard.pergame.reduced <- step(log.guard.pergame.full, trace = 0)
+log.guard.pergame.reduced <- glm(TotalAllNba ~ TeamWins+GP+FGM+FGA+TwoPM+TwoPA+ORB+DRB+TRB+AST+STL+TOV+PF+PTS,
+                                 data = guard_data_pergame[which(guard_data_pergame$Season != 2019),], family = binomial(link="logit"))
+# summary(log.guard.pergame.reduced)
 log.guard.pergame.full.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_data_pergame$Season == 2019),], log.guard.pergame.reduced)[1:6,]
 log.guard.pergame.red.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_data_pergame$Season == 2019),], log.guard.pergame.reduced)[1:6,]
 
@@ -1323,8 +1332,10 @@ log.guard.pergame.red.pred <- predAllNbaPlayers(guard_data_pergame[which(guard_d
 log.forward.pergame.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = forward_data_pergame[which(forward_data_pergame$Season != 2019),], family = binomial(link="logit"))
-log.forward.pergame.reduced <- step(log.forward.pergame.full, trace = FALSE)
-summary(log.forward.pergame.reduced)
+# log.forward.pergame.reduced <- step(log.forward.pergame.full, trace = 0)
+log.forward.pergame.reduced <- glm(TotalAllNba ~ TeamWins+Age+GP+FGA+FGperc+ThreePperc+FTM+FTA+FTperc+DRB+AST+BLK+TOV+PTS,
+                                   data = forward_data_pergame[which(forward_data_pergame$Season != 2019),], family = binomial(link="logit"))
+# summary(log.forward.pergame.reduced)
 log.forward.pergame.full.pred <- predAllNbaPlayers(forward_data_pergame[which(forward_data_pergame$Season == 2019),], log.forward.pergame.reduced)[1:6,]
 log.forward.pergame.red.pred <- predAllNbaPlayers(forward_data_pergame[which(forward_data_pergame$Season == 2019),], log.forward.pergame.reduced)[1:6,]
 
@@ -1332,16 +1343,12 @@ log.forward.pergame.red.pred <- predAllNbaPlayers(forward_data_pergame[which(for
 log.center.pergame.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = center_data_pergame[which(center_data_pergame$Season != 2019),], family = binomial(link="logit"))
-log.center.pergame.reduced <- step(log.center.pergame.full, trace = FALSE)
-summary(log.center.pergame.reduced)
+# log.center.pergame.reduced <- step(log.center.pergame.full, trace = 0)
+log.center.pergame.reduced <- glm(TotalAllNba ~ TeamWins+Age+GS+MP+FGM+ThreePA+TwoPperc+FTM+FTperc+TRB+AST+BLK,
+                                  data = center_data_pergame[which(center_data_pergame$Season != 2019),], family = binomial(link="logit"))
+# summary(log.center.pergame.reduced)
 log.center.pergame.full.pred <- predAllNbaPlayers(center_data_pergame[which(center_data_pergame$Season == 2019),], log.center.pergame.reduced)[1:3,]
 log.center.pergame.red.pred <- predAllNbaPlayers(center_data_pergame[which(center_data_pergame$Season == 2019),], log.center.pergame.reduced)[1:3,]
-
-log.pergame.all_nba_team.full <- rbind(log.guard.pergame.full.pred,log.forward.pergame.full.pred,log.center.pergame.full.pred)
-log.pergame.all_nba_team.red <- rbind(log.guard.pergame.red.pred,log.forward.pergame.red.pred,log.center.pergame.red.pred)
-# linear accuracy
-log.pergame.full.acc <- calcAccuracy(log.pergame.all_nba_team.full)
-log.pergame.red.acc <- calcAccuracy(log.pergame.all_nba_team.red)
 
 ##################################################################
 ################   Advanced Stats Model   ################
@@ -1355,8 +1362,11 @@ center_data_adv <- data_player_adv_filtered[which(data_player_adv_filtered$Pos %
 lm.guard.adv.full <- lm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                       ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                           data = guard_data_adv[which(guard_data_adv$Season != 2019),])
-lm.guard.adv.reduced <- step(lm.guard.adv.full, trace = FALSE)
-summary(lm.guard.adv.reduced)
+# lm.guard.adv.reduced <- step(lm.guard.adv.full, trace = 0)
+lm.guard.adv.reduced <- lm(TotalAllNba ~ TeamWins+MP+PER+TSperc+ThreePAr+ORBperc+DRBperc+TRBperc+
+                                         STLperc+USGperc+OWS+DWS+WSper48+OBPM+DBPM+VORP,
+                           data = guard_data_adv[which(guard_data_adv$Season != 2019),])
+# summary(lm.guard.adv.reduced)
 lm.guard.adv.full.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$Season == 2019),], lm.guard.adv.reduced)[1:6,]
 lm.guard.adv.red.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$Season == 2019),], lm.guard.adv.reduced)[1:6,]
 
@@ -1364,8 +1374,10 @@ lm.guard.adv.red.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$S
 lm.forward.adv.full <- lm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                         ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                           data = forward_data_adv[which(forward_data_adv$Season != 2019),])
-lm.forward.adv.reduced <- step(lm.forward.adv.full, trace = FALSE)
-summary(lm.forward.adv.reduced)
+# lm.forward.adv.reduced <- step(lm.forward.adv.full, trace = 0)
+lm.forward.adv.reduced <- lm(TotalAllNba ~ GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+ASTperc+STLperc+USGperc+OWS+DWS+WS+WSper48+DBPM,
+                             data = forward_data_adv[which(forward_data_adv$Season != 2019),])
+# summary(lm.forward.adv.reduced)
 lm.forward.adv.full.pred <- predAllNbaPlayers(forward_data_adv[which(forward_data_adv$Season == 2019),], lm.forward.adv.reduced)[1:6,]
 lm.forward.adv.red.pred <- predAllNbaPlayers(forward_data_adv[which(forward_data_adv$Season == 2019),], lm.forward.adv.reduced)[1:6,]
 
@@ -1373,24 +1385,23 @@ lm.forward.adv.red.pred <- predAllNbaPlayers(forward_data_adv[which(forward_data
 lm.center.adv.full <- lm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                        ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                           data = center_data_adv[which(center_data_adv$Season != 2019),])
-lm.center.adv.reduced <- step(lm.center.adv.full, trace = FALSE)
-summary(lm.center.adv.reduced)
+# lm.center.adv.reduced <- step(lm.center.adv.full, trace = 0)
+lm.center.adv.reduced <- lm(TotalAllNba ~ Age+MP+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
+                                          ASTperc+STLperc+USGperc+OWS+DWS+WS+WSper48+OBPM+VORP,
+                            data = center_data_adv[which(center_data_adv$Season != 2019),])
+# summary(lm.center.adv.reduced)
 lm.center.adv.full.pred <- predAllNbaPlayers(center_data_adv[which(center_data_adv$Season == 2019),], lm.center.adv.reduced)[1:3,]
 lm.center.adv.red.pred <- predAllNbaPlayers(center_data_adv[which(center_data_adv$Season == 2019),], lm.center.adv.reduced)[1:3,]
-
-lm.adv.all_nba_team.full <- rbind(lm.guard.adv.full.pred,lm.forward.adv.full.pred,lm.center.adv.full.pred)
-lm.adv.all_nba_team.red <- rbind(lm.guard.adv.red.pred,lm.forward.adv.red.pred,lm.center.adv.red.pred)
-# linear accuracy
-lm.adv.full.acc <- calcAccuracy(lm.adv.all_nba_team.full)
-lm.adv.red.acc <- calcAccuracy(lm.adv.all_nba_team.red)
 
 ############### logistic model ###############
 # guard
 log.guard.adv.full <- glm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                         ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                             data = guard_data_adv[which(guard_data_adv$Season != 2019),], family = binomial(link="logit"))
-log.guard.adv.reduced <- step(log.guard.adv.full, trace = FALSE)
-summary(log.guard.adv.reduced)
+# log.guard.adv.reduced <- step(log.guard.adv.full, trace = 0)
+log.guard.adv.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+TRBperc+ASTperc+USGperc+OWS+DWS+WS+WSper48,
+                             data = guard_data_adv[which(guard_data_adv$Season != 2019),], family = binomial(link="logit"))
+# summary(log.guard.adv.reduced)
 log.guard.adv.full.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$Season == 2019),], log.guard.adv.reduced)[1:6,]
 log.guard.adv.red.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$Season == 2019),], log.guard.adv.reduced)[1:6,]
 
@@ -1398,8 +1409,10 @@ log.guard.adv.red.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$
 log.forward.adv.full <- glm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                           ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                             data = forward_data_adv[which(forward_data_adv$Season != 2019),], family = binomial(link="logit"))
-log.forward.adv.reduced <- step(log.forward.adv.full, trace = FALSE)
-summary(log.forward.adv.reduced)
+# log.forward.adv.reduced <- step(log.forward.adv.full, trace = 0)
+log.forward.adv.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+ThreePAr+ORBperc+ASTperc+USGperc+OWS+DWS+WSper48+OBPM+DBPM+VORP,
+                               data = forward_data_adv[which(forward_data_adv$Season != 2019),], family = binomial(link="logit"))
+# summary(log.forward.adv.reduced)
 log.forward.adv.full.pred <- predAllNbaPlayers(forward_data_adv[which(forward_data_adv$Season == 2019),], log.forward.adv.reduced)[1:6,]
 log.forward.adv.red.pred <- predAllNbaPlayers(forward_data_adv[which(forward_data_adv$Season == 2019),], log.forward.adv.reduced)[1:6,]
 
@@ -1407,16 +1420,12 @@ log.forward.adv.red.pred <- predAllNbaPlayers(forward_data_adv[which(forward_dat
 log.center.adv.full <- glm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+
                                          ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                             data = center_data_adv[which(center_data_adv$Season != 2019),], family = binomial(link="logit"))
-log.center.adv.reduced <- step(log.center.adv.full, trace = FALSE)
-summary(log.center.adv.reduced)
+# log.center.adv.reduced <- step(log.center.adv.full, trace = 0)
+log.center.adv.reduced <- glm(TotalAllNba ~ Age+GP+MP+FTr+ORBperc+DRBperc+TRBperc+ASTperc+USGperc+OWS+DWS+DBPM,
+                              data = center_data_adv[which(center_data_adv$Season != 2019),], family = binomial(link="logit"))
+# summary(log.center.adv.reduced)
 log.center.adv.full.pred <- predAllNbaPlayers(center_data_adv[which(center_data_adv$Season == 2019),], log.center.adv.reduced)[1:3,]
 log.center.adv.red.pred <- predAllNbaPlayers(center_data_adv[which(center_data_adv$Season == 2019),], log.center.adv.reduced)[1:3,]
-
-log.adv.all_nba_team.full <- rbind(log.guard.adv.full.pred,log.forward.adv.full.pred,log.center.adv.full.pred)
-log.adv.all_nba_team.red <- rbind(log.guard.adv.red.pred,log.forward.adv.red.pred,log.center.adv.red.pred)
-# linear accuracy
-log.adv.full.acc <- calcAccuracy(log.adv.all_nba_team.full)
-log.adv.red.acc <- calcAccuracy(log.adv.all_nba_team.red)
 
 ###################################################################
 ################   Merge Total & Adv Stats Model   ################
@@ -1443,8 +1452,11 @@ lm.guard.merge.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+Thr
                                         PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                         BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                           data = guard_data_merge[which(guard_data_merge$Season != 2019),])
-lm.guard.merge.reduced <- step(lm.guard.merge.full, trace = FALSE)
-summary(lm.guard.merge.reduced)
+# lm.guard.merge.reduced <- step(lm.guard.merge.full, trace = 0)
+lm.guard.merge.reduced <- lm(TotalAllNba ~ TeamWins+MP+FGA+ThreePM+ThreePA+TwoPM+TwoPperc+eFGperc+FTA+ORB+DRB+AST+
+                                           PTS+PER+TSperc+FTr+DRBperc+ASTperc+STLperc+TOVperc+USGperc+OWS+WS+WSper48+DBPM,
+                          data = guard_data_merge[which(guard_data_merge$Season != 2019),])
+# summary(lm.guard.merge.reduced)
 lm.guard.merge.full.pred <- predAllNbaPlayers(guard_data_merge[which(guard_data_merge$Season == 2019),], lm.guard.merge.reduced)[1:6,]
 lm.guard.merge.red.pred <- predAllNbaPlayers(guard_data_merge[which(guard_data_merge$Season == 2019),], lm.guard.merge.reduced)[1:6,]
 
@@ -1454,8 +1466,12 @@ lm.forward.merge.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+T
                                           PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                           BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                           data = forward_data_merge[which(forward_data_merge$Season != 2019),])
-lm.forward.merge.reduced <- step(lm.forward.merge.full, trace = FALSE)
-summary(lm.forward.merge.reduced)
+# lm.forward.merge.reduced <- step(lm.forward.merge.full, trace = 0)
+lm.forward.merge.reduced <- lm(TotalAllNba ~ GP+MP+FGA+ThreePM+ThreePA+TwoPM+TwoPA+eFGperc+FTM+FTA+ORB+DRB+AST+BLK+PF+
+                                             PTS+PER+TSperc+ThreePAr+ORBperc+DRBperc+ASTperc+STLperc+
+                                             BLKperc+TOVperc+USGperc+DWS+WS+WSper48+DBPM+VORP,
+                               data = forward_data_merge[which(forward_data_merge$Season != 2019),])
+# summary(lm.forward.merge.reduced)
 lm.forward.merge.full.pred <- predAllNbaPlayers(forward_data_merge[which(forward_data_merge$Season == 2019),], lm.forward.merge.reduced)[1:6,]
 lm.forward.merge.red.pred <- predAllNbaPlayers(forward_data_merge[which(forward_data_merge$Season == 2019),], lm.forward.merge.reduced)[1:6,]
 
@@ -1465,16 +1481,13 @@ lm.center.merge.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+Th
                                          PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                          BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                           data = center_data_merge[which(center_data_merge$Season != 2019),])
-lm.center.merge.reduced <- step(lm.center.merge.full, trace = FALSE)
-summary(lm.center.merge.reduced)
+# lm.center.merge.reduced <- step(lm.center.merge.full, trace = 0)
+lm.center.merge.reduced <- lm(TotalAllNba ~ MP+FGA+ThreePA+TwoPA+TwoPperc+FTA+FTperc+ORB+TRB+AST+
+                                            PER+TSperc+FTr+DRBperc+STLperc+BLKperc+USGperc+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
+                          data = center_data_merge[which(center_data_merge$Season != 2019),])
+# summary(lm.center.merge.reduced)
 lm.center.merge.full.pred <- predAllNbaPlayers(center_data_merge[which(center_data_merge$Season == 2019),], lm.center.merge.reduced)[1:3,]
 lm.center.merge.red.pred <- predAllNbaPlayers(center_data_merge[which(center_data_merge$Season == 2019),], lm.center.merge.reduced)[1:3,]
-
-lm.merge.all_nba_team.full <- rbind(lm.guard.merge.full.pred,lm.forward.merge.full.pred,lm.center.merge.full.pred)
-lm.merge.all_nba_team.red <- rbind(lm.guard.merge.red.pred,lm.forward.merge.red.pred,lm.center.merge.red.pred)
-# linear accuracy
-lm.merge.full.acc <- calcAccuracy(lm.merge.all_nba_team.full)
-lm.merge.red.acc <- calcAccuracy(lm.merge.all_nba_team.red)
 
 ############### logistic model ###############
 # guard
@@ -1483,8 +1496,12 @@ log.guard.merge.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+T
                                           PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                           BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                             data = guard_data_merge[which(guard_data_merge$Season != 2019),], family = binomial(link="logit"))
-log.guard.merge.reduced <- step(log.guard.merge.full, trace = FALSE)
-summary(log.guard.merge.reduced)
+# log.guard.merge.reduced <- step(log.guard.merge.full, trace = 0)
+log.guard.merge.reduced <- glm(TotalAllNba ~ TeamWins+GP+FGM+FGA+FGperc+ThreePperc+TwoPM+
+                                             TwoPA+FTperc+DRB+TRB+AST+PF+PTS+TSperc+ThreePAr+FTr+ORBperc+
+                                             DRBperc+TRBperc+ASTperc+STLperc+USGperc+OWS+DWS+WSper48+DBPM+BPM,
+                            data = guard_data_merge[which(guard_data_merge$Season != 2019),], family = binomial(link="logit"))
+# summary(log.guard.merge.reduced)
 log.guard.merge.full.pred <- predAllNbaPlayers(guard_data_merge[which(guard_data_merge$Season == 2019),], log.guard.merge.reduced)[1:6,]
 log.guard.merge.red.pred <- predAllNbaPlayers(guard_data_merge[which(guard_data_merge$Season == 2019),], log.guard.merge.reduced)[1:6,]
 
@@ -1494,8 +1511,12 @@ log.forward.merge.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc
                                             PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                             BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                             data = forward_data_merge[which(forward_data_merge$Season != 2019),], family = binomial(link="logit"))
-log.forward.merge.reduced <- step(log.forward.merge.full, trace = FALSE)
-summary(log.forward.merge.reduced)
+# log.forward.merge.reduced <- step(log.forward.merge.full, trace = 0)
+log.forward.merge.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+
+                                               TwoPA+eFGperc+FTM+FTA+ORB+DRB+TRB+STL+BLK+PF+PER+ThreePAr+
+                                               FTr+ORBperc+STLperc+TOVperc+WS+WSper48+OBPM+DBPM+VORP,
+                            data = forward_data_merge[which(forward_data_merge$Season != 2019),], family = binomial(link="logit"))
+# summary(log.forward.merge.reduced)
 log.forward.merge.full.pred <- predAllNbaPlayers(forward_data_merge[which(forward_data_merge$Season == 2019),], log.forward.merge.reduced)[1:6,]
 log.forward.merge.red.pred <- predAllNbaPlayers(forward_data_merge[which(forward_data_merge$Season == 2019),], log.forward.merge.reduced)[1:6,]
 
@@ -1505,18 +1526,95 @@ log.center.merge.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+
                                            PTS+PER+TSperc+ThreePAr+FTr+ORBperc+DRBperc+TRBperc+ASTperc+STLperc+
                                            BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+BPM+VORP,
                             data = center_data_merge[which(center_data_merge$Season != 2019),], family = binomial(link="logit"))
-log.center.merge.reduced <- step(log.center.merge.full, trace = FALSE)
-summary(log.center.merge.reduced)
+# log.center.merge.reduced <- step(log.center.merge.full, trace = 0)
+log.center.merge.reduced <- glm(TotalAllNba ~ TeamWins+GP+FGM+FGperc+TwoPperc+FTM+FTA+BLK+PTS+TSperc+ThreePAr+
+                                              ORBperc+DRBperc+TRBperc+DWS+OBPM+BPM+VORP,
+                            data = center_data_merge[which(center_data_merge$Season != 2019),], family = binomial(link="logit"))
+# summary(log.center.merge.reduced)
 log.center.merge.full.pred <- predAllNbaPlayers(center_data_merge[which(center_data_merge$Season == 2019),], log.center.merge.reduced)[1:3,]
 log.center.merge.red.pred <- predAllNbaPlayers(center_data_merge[which(center_data_merge$Season == 2019),], log.center.merge.reduced)[1:3,]
+```
 
+```{r Modelling Accuracy}
+# all nba team
+lm.total.all_nba_team.full <- rbind(lm.guard.total.full.pred,lm.forward.total.full.pred,lm.center.total.full.pred)
+lm.total.all_nba_team.red <- rbind(lm.guard.total.red.pred,lm.forward.total.red.pred,lm.center.total.red.pred)
+# linear accuracy
+lm.total.full.acc <- calcAccuracy(lm.total.all_nba_team.full)
+lm.total.red.acc <- calcAccuracy(lm.total.all_nba_team.red)
+# all nba team
+log.total.all_nba_team.full <- rbind(log.guard.total.full.pred,log.forward.total.full.pred,log.center.total.full.pred)
+log.total.all_nba_team.red <- rbind(log.guard.total.red.pred,log.forward.total.red.pred,log.center.total.red.pred)
+# linear accuracy
+log.total.full.acc <- calcAccuracy(log.total.all_nba_team.full)
+log.total.red.acc <- calcAccuracy(log.total.all_nba_team.red)
+# all nba team
+lm.pergame.all_nba_team.full <- rbind(lm.guard.pergame.full.pred,lm.forward.pergame.full.pred,lm.center.pergame.full.pred)
+lm.pergame.all_nba_team.red <- rbind(lm.guard.pergame.red.pred,lm.forward.pergame.red.pred,lm.center.pergame.red.pred)
+# linear accuracy
+lm.pergame.full.acc <- calcAccuracy(lm.pergame.all_nba_team.full)
+lm.pergame.red.acc <- calcAccuracy(lm.pergame.all_nba_team.red)
+# all nba team
+log.pergame.all_nba_team.full <- rbind(log.guard.pergame.full.pred,log.forward.pergame.full.pred,log.center.pergame.full.pred)
+log.pergame.all_nba_team.red <- rbind(log.guard.pergame.red.pred,log.forward.pergame.red.pred,log.center.pergame.red.pred)
+# linear accuracy
+log.pergame.full.acc <- calcAccuracy(log.pergame.all_nba_team.full)
+log.pergame.red.acc <- calcAccuracy(log.pergame.all_nba_team.red)
+# all nba team
+lm.adv.all_nba_team.full <- rbind(lm.guard.adv.full.pred,lm.forward.adv.full.pred,lm.center.adv.full.pred)
+lm.adv.all_nba_team.red <- rbind(lm.guard.adv.red.pred,lm.forward.adv.red.pred,lm.center.adv.red.pred)
+# linear accuracy
+lm.adv.full.acc <- calcAccuracy(lm.adv.all_nba_team.full)
+lm.adv.red.acc <- calcAccuracy(lm.adv.all_nba_team.red)
+# all nba team
+log.adv.all_nba_team.full <- rbind(log.guard.adv.full.pred,log.forward.adv.full.pred,log.center.adv.full.pred)
+log.adv.all_nba_team.red <- rbind(log.guard.adv.red.pred,log.forward.adv.red.pred,log.center.adv.red.pred)
+# linear accuracy
+log.adv.full.acc <- calcAccuracy(log.adv.all_nba_team.full)
+log.adv.red.acc <- calcAccuracy(log.adv.all_nba_team.red)
+# all nba team
+lm.merge.all_nba_team.full <- rbind(lm.guard.merge.full.pred,lm.forward.merge.full.pred,lm.center.merge.full.pred)
+lm.merge.all_nba_team.red <- rbind(lm.guard.merge.red.pred,lm.forward.merge.red.pred,lm.center.merge.red.pred)
+# linear accuracy
+lm.merge.full.acc <- calcAccuracy(lm.merge.all_nba_team.full)
+lm.merge.red.acc <- calcAccuracy(lm.merge.all_nba_team.red)
+# all nba team
 log.merge.all_nba_team.full <- rbind(log.guard.merge.full.pred,log.forward.merge.full.pred,log.center.merge.full.pred)
 log.merge.all_nba_team.red <- rbind(log.guard.merge.red.pred,log.forward.merge.red.pred,log.center.merge.red.pred)
 # linear accuracy
 log.merge.full.acc <- calcAccuracy(log.merge.all_nba_team.full)
 log.merge.red.acc <- calcAccuracy(log.merge.all_nba_team.red)
-```
 
+full_vs_red_acc <- data.frame(Data=c("Full Linear","Reduced Linear","Full Logistic","Reduced Linear"),
+                              Linear=c(lm.total.full.acc,lm.total.red.acc,lm.pergame.full.acc,lm.pergame.red.acc,
+                                       lm.adv.full.acc,lm.adv.red.acc,lm.merge.full.acc,lm.merge.red.acc),
+                              Logistic=c(log.total.full.acc,log.total.red.acc,log.pergame.full.acc,log.pergame.red.acc,
+                                         log.adv.full.acc,log.adv.red.acc,log.merge.full.acc,log.merge.red.acc))
+par(mfrow=c(1,1))
+colours <- viridis(4)
+full_vs_red_plot <- barplot(c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2],
+                              full_vs_red_acc$Linear[3],full_vs_red_acc$Linear[4],full_vs_red_acc$Logistic[3],full_vs_red_acc$Logistic[4],
+                              full_vs_red_acc$Linear[5],full_vs_red_acc$Linear[6],full_vs_red_acc$Logistic[5],full_vs_red_acc$Logistic[6],
+                              full_vs_red_acc$Linear[7],full_vs_red_acc$Linear[8],full_vs_red_acc$Logistic[7],full_vs_red_acc$Logistic[8]),
+                            names.arg = rep(full_vs_red_acc$Data,2),
+                            ylim=c(0,1), las=2, col=c(rep(colours[1],4),rep(colours[2],4),rep(colours[3],4),rep(colours[4],4)),
+                            ylab="Accuracy",main="Full vs Reduced Model Accuracy - 2019 Predictions", cex.names = 0.6)
+text(x=full_vs_red_plot,
+     y=c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2],
+                              full_vs_red_acc$Linear[3],full_vs_red_acc$Linear[4],full_vs_red_acc$Logistic[3],full_vs_red_acc$Logistic[4],
+                              full_vs_red_acc$Linear[5],full_vs_red_acc$Linear[6],full_vs_red_acc$Logistic[5],full_vs_red_acc$Logistic[6],
+                              full_vs_red_acc$Linear[7],full_vs_red_acc$Linear[8],full_vs_red_acc$Logistic[7],full_vs_red_acc$Logistic[8]),
+     label=round(c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2],
+                              full_vs_red_acc$Linear[3],full_vs_red_acc$Linear[4],full_vs_red_acc$Logistic[3],full_vs_red_acc$Logistic[4],
+                              full_vs_red_acc$Linear[5],full_vs_red_acc$Linear[6],full_vs_red_acc$Logistic[5],full_vs_red_acc$Logistic[6],
+                              full_vs_red_acc$Linear[7],full_vs_red_acc$Linear[8],full_vs_red_acc$Logistic[7],full_vs_red_acc$Logistic[8]),
+               digits=3),
+     pos=3, cex=0.7)
+legend("bottomright",c("Total Stats","Per Game Stats","Advanced Stats","Total & Adv Stats"),
+      fill = colours, cex=0.8)
+# see that the reduced models with less features perform the same as the full models 
+# will use the reduced models going forward with cross validation to see which model performs the best
+```
 
 ```{r Cross Validation}
 ```

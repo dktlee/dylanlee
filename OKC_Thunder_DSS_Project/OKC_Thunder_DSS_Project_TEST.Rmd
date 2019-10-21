@@ -118,14 +118,14 @@ simulate_all_nba <- function(data) {
     pred_center <- predict(red_model_center, newdata = test_center_set, type = "response")
     
     if (length(pred_guard) > 0) {
-      all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, dim(pred_guard)[1])]), ]
+      all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, length(pred_guard)]), ]
       for (index in 1:dim(all_nba_guard)[1]) {
         player <- all_nba_guard[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
       }
     }
     if (length(pred_center) > 0) {
-      all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center, decreasing=TRUE)][1:min(6,dim(pred_center)[1])]),]
+      all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center, decreasing=TRUE)][1:min(3,length(pred_center)]),]
       for (index in 1:dim(all_nba_center)[1]) {
         player <- all_nba_center[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
@@ -1050,7 +1050,7 @@ loadTotalsData <- function(yr_start, yr_end) {
 }
 ```
 
-```{r Data Collection and Processing, message=TRUE, warning=TRUE}
+```{r Data Collection and Processing, message=FALSE, warning=TRUE}
 # historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
 # however, only consider All-NBA selections from the 1999-2000 season and onwards
 # Karl Malone was the first drafted player from the 2000 All-NBA team so wanted to grab his entire
@@ -1064,51 +1064,32 @@ data_player_totals <- loadTotalsData(2000, YEAR_END)
 data_player_totals$YearsInNba <- data_player_totals$Season - as.integer(data_player_totals$DraftYear)
 
 data_player_totals$AllNba <- FALSE
-data_player_totals$AllNba <- ifelse(data_player_totals$TotalAllNba==1,TRUE,FALSE)
+data_player_totals$AllNba <- ifelse(data_player_totals$TotalAllNba == 1, TRUE, FALSE)
 
-head(data_all_nba[sample(nrow(data_all_nba), 10), ], 10)
-head(data_player_totals[sample(nrow(data_player_totals), 10), ], 10)
+head(data_all_nba[sample(nrow(data_all_nba), 10),], 10)
+head(data_player_totals[sample(nrow(data_player_totals), 10),], 10)
 ```
-Data was collected from the well known third-party Basketball-Reference.com. I chose to collect data from this source because of its comprehensive database of historical player and team statistics, as well as the easy accesiblity (Basketball Reference allows me to download the data as CSV files). The data is well formatted and only minor processing is required. I collected data from the 1985-1986 NBA season up until the 2018-2019 season, including season team standings, player advanced statistics, player total stats, player per game stats, and a list of players who have been awarded an All-NBA selection. I only considered All-NBA selections from the 1999-2000 season and onwards, but collected data starting with the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
+Data was collected from the well known third-party Basketball-Reference.com. I chose to collect data from this source because of its comprehensive database of historical player, as well as the easy accesiblity (Basketball Reference allows me to download the data as CSV files). The data is well formatted and only minor processing is required. I collected data from the 1985-1986 NBA season up until the 2018-2019 season, including player total stats, player per game stats and a list of players who have been awarded an All-NBA selection. I only considered All-NBA selections from the 1999-2000 season and onwards, but collected data starting with the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
 
 ``` {r Data Analysis: Part 1 - Data Summary}
-# look at the distribution of the stats we have 
+# look at the distribution of the stats we have
 cat("Player Totals Data:",dim(data_player_totals)[1],"rows by",dim(data_player_totals)[2],"columns\n")
-data_player_totals %>% select(Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,ThreePperc,
-                              TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,FTperc,ORB,DRB,TRB,AST,STL,
-                              BLK,PTS) %>% summary()
-# the summary statistics show a large range of values for any given statistic, as expected
-# I should normalize each statistic by season by dividing by the season's max, so that each
-# statistic now lies between (0,1), and the stat leader being the max: 1
-# this is because we don't want any outliers that are too low or too high 
-# in a stat category which can hurt the model
+data_player_totals %>% select(Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,ThreePperc,TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,
+                              FTperc,ORB,DRB,TRB,AST,STL,BLK,PTS) %>% summary()
 ```
+The summary statistics show a large range of values for any give statistic, as expected. I should normalize each statistic for each season by dividing by the season's max; this means that each statistic now lies between (0,1) and the stat leader being the max at a value of 1. I do this because I don't want any outliers that are too low or too high in a certain stat category which can hurt the model. Also, note that we have 8,263 rows and 35 columns; I will check to see if we can remove some of these data points to avoid feeding noise into the model and reduce the covariates used to model the response.
 
 ``` {r Data Analysis: Part 2 - Correlation}
 # to determine which stats might be correlated with winning an All-NBA selection for a given season
-corr.matrix.totals <- cor(data_player_totals[,c("TotalAllNba","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM",
-                                                "ThreePA","ThreePperc","TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA",
-                                                "FTperc","ORB","DRB","TRB","AST","STL","BLK","TOV","PF","PTS")])
-corrplot(corr.matrix.totals[1,2:27,drop=FALSE], title="Correlation: Player Totals", mar=c(0,0,1,0))
-# the correlation plots of Player Totals and Player Per Game stats show slightly positive correlation between 
-# winning an All-NBA selection and GS, MP, FGM, TwoPM, FTM, FTA, TRB, AST, STL, PTS - mainly scoring stats
-# while defensive stats are slightly less correlated - fairly trivial conclusion
-# looking at the Advanced Player stats is a bit more interesting, we see that player effeciency rating (PER), usage
-# percentage, win shares, plus minus, and value over replacement player are more strongly correlated with winning
-# an All-NBA selection for a given season.
+corr.matrix.totals <- cor(data_player_totals[, c("TotalAllNba","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM","ThreePA","ThreePperc",
+                                                 "TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA","FTperc","ORB","DRB","TRB","AST","STL",
+                                                 "BLK","TOV","PF","PTS")])
+corrplot(corr.matrix.totals[1, 2:27, drop = FALSE],title = "Correlation: Player Totals",mar = c(0, 0, 1, 0))
 ```
+The correlation plots of Player Total Stats show slightly positive correlation between being selected for the All-NBA team and Games Started, Field Goals Made, Field Goals Attempted, Free Throws Made, Free Throws Attempted, Rebounds, Assists, Steals, Blocks, Turnovers, and Points: stronger correlation in the scoring stats while the other counting stats are slightly less correlated. Even though we observe positive correlations with certain covariates, correlation does not necessarily imply causation. I will continue to investigate the relationship
 
 ``` {r Data Analysis: Part 3 - Distribution, message=FALSE}
-# we see that we are working with quite a large data set (~8500-10500 rows by 32-35 columns)
-# by looking at the distribution of our data, comparing All-NBA players against the rest of the leauge,
-# we may find ways to filter out data points that could potentially dilute the model's ability to
-# showcase elite players, and instead flood the model with bench/rotational players
-
-# the plots are histograms counting the number of players (y-axis) who fall into the bucket determined
-# by the stat on the x-axis, split between All-NBA players and non All-NBA players
-
-# note: there might be a more efficient way to code this section, but I sacrificed ease for aesthetics
-# since this will be generating a report
+# note: there might be a more efficient way to code this section, but I sacrificed ease for aesthetics since this will be generating a report
 hist.totals.Age <- ggplot(data_player_totals, aes(x=Age,fill=AllNba,color=AllNba)) + 
                         geom_histogram(position = "identity", alpha = 0.5) +
                         ggtitle("Total Stats") + 
@@ -1249,6 +1230,10 @@ hist.totals.PTS
 # looking at the advanced stats we see All-NBA players have a higher PER, USGperc, WS, BPM, and VORP
 # than average
 ```
+The plots are histograms counting the number of players (y-axis) who fall into a certain bucket partitioned by each stat category (x-axis), split between All-NBA players and the rest of the league. Looking at the distribution of our data, comparing All-NBA players against the rest of the league, we uncover interesting findings that will allow me to filter out data points that could potentially dilute the model's ability to showcase elite players. I don't want to flood the model with bench/ rotational players who aren't in consideration for All-NBA honours. I will use Games Played during a season as a proxy, and only consider players who play 48 games or more.
+
+We consitantly see that All-NBA players are performing above average in the counting stats compared to the rest of the league - a fairly trivial solution. A more interesting discovery is the distributions of the different shooting percentages (FG%, 3P%, 2P%, eFG%, and FT%). We see that All-NBA players have similar distributions compared to the rest of the league, and are not actually shooting consistantly better or more efficiently. I infer that this comes with the territory of All-NBA players having higher usage rates and taking more shots.
+
 
 ``` {r Data Analysis: Part 4 - Filtering Data}
 # also notice that All-NBA players have about more than 48 Games Played, more than 23 Games Started,

@@ -8,6 +8,7 @@ dktlee@uwaterloo.ca
 (416) 312-7550
 
 ``` {r Libraries, warning = FALSE, message = FALSE}
+# load required packages
 library(reshape2)
 library(dplyr)
 library(corrplot)
@@ -19,6 +20,13 @@ library(tidyverse)
 ```
 
 ```{r Helper Functions}
+# helper functions created to assist with resuability
+
+##################################################################
+##################   Predict All-NBA Response   ##################
+##################################################################
+# will predict response for data using the model given, and will return an ordered list ranking the nba players from highest probability
+# of being selected as an All-NBA player to lowest
 predAllNbaPlayers <- function(data,model){
   pred <- predict(model,newdata=data,type="response")
   all_nba_players <- data[0,]
@@ -26,11 +34,20 @@ predAllNbaPlayers <- function(data,model){
   return(all_nba_players)
 }
 
+##################################################################
+#####################   Calculate Accuracy   #####################
+##################################################################
+# will calculate the accuracy of the prediction
 calcAccuracy <- function(all_nba_players) {
   correct <- all_nba_players[which(all_nba_players$TotalAllNba == 1),]
   return(dim(correct)[1] / dim(all_nba_players)[1])
 }
 
+##################################################################
+###############   Leave-One-Out Cross-Validation   ###############
+##################################################################
+# conduct leave-one-out cross-validation by training the model on all the season's data, except one season, and leaving that one season 
+# out to test the model on
 cross_validation_all_nba_players <- function(data,model,position) {
   accuracies <- c()
   for (year in min(data$Season):max(data$Season)) {
@@ -53,6 +70,10 @@ cross_validation_all_nba_players <- function(data,model,position) {
   return(accuracies)
 }
 
+##################################################################
+######################   Normalize Stats   #######################
+##################################################################
+# normalize each statistic by dividing by that season's max
 normalize_stats <- function (data) {
   for (year in levels(as.factor(data$Season))) {
     for (index in c(8:33)) {
@@ -64,6 +85,11 @@ normalize_stats <- function (data) {
   return(data)
 }
 
+##################################################################
+#####   Simulate Future Seasons & Predict All-NBA Players   ######
+##################################################################
+# this function will conduct the forecast of next year's stats, add the past season's stats to the training data set, and then predict
+# All-NBA players for the forecasted season. The model is updated with each iteration when a new All-NBA team is selected
 simulate_all_nba <- function(data) {
   df.forecast<-data
   for (year in 2020:2034) {
@@ -90,20 +116,31 @@ simulate_all_nba <- function(data) {
     test_center_set <- df.forecast.normalize[which(df.forecast.normalize$Season==year & df.forecast.normalize$Pos %in% c("C")),]
     pred_guard <- predict(red_model_guard,newdata = test_guard_set,type = "response")
     pred_center <- predict(red_model_center,newdata = test_center_set,type = "response")
-    all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard,decreasing=TRUE)][6]),]
-    for (index in 1:dim(all_nba_guard)[1]) {
-      player <- all_nba_guard[index,]
-      df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year),]$TotalAllNba <- 1
+    
+    if (dim(pred_guard)[1] >0) {
+      all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard,decreasing=TRUE)][1:min(6,dim(pred_guard)[1])]),]
+      for (index in 1:dim(all_nba_guard)[1]) {
+        player <- all_nba_guard[index,]
+        df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year),]$TotalAllNba <- 1
+      }
     }
-    all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center,decreasing=TRUE)][3]),]
-    for (index in 1:dim(all_nba_center)[1]) {
-      player <- all_nba_center[index,]
-      df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year),]$TotalAllNba <- 1
+    if (dim(pred_center)[1] >0) {
+      all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center,decreasing=TRUE)][1:min(6,dim(pred_center)[1])]),]
+      for (index in 1:dim(all_nba_center)[1]) {
+        player <- all_nba_center[index,]
+        df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year),]$TotalAllNba <- 1
+      }
     }
   }
 return(df.forecast.normalize)
 }
 
+##################################################################
+##################   Project Next Season Stats   #################
+##################################################################
+# a Simple Projection System, similar to the algorithm used by Basketball-Reference.com to project a player's stats for the next season
+# modified here to project a player's Total stats for the season. Not the most sophisticated projection system, but it at least generates
+# comparable stats that may be used
 forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_years_ago_data) {
   df <- last_year_data[0,]
   mp_last_year <- sum(last_year_data$MP)
@@ -753,19 +790,10 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
   return(df)
 }
 
-```
-
-```{r Data Collection and Processing, message=TRUE, warning=TRUE}
-# historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
-# however, only consider All-NBA selections from the 1999-2000 season and onwards
-# Karl Malone was the first drafted player from the 2000 All-NBA team so wanted to grab his entire
-# career stats, as well as all other players
-YEAR_START <- 1986
-YEAR_END <- 2019
-
 ##################################################################
-##################   Load All-NBA Awards Data   ##################
+##################   Predict All-NBA Response   ##################
 ##################################################################
+# load all-nba awards data from csv files downloaded from Basketball-Reference.com
 loadAwardsData <- function() {
   # creating final data frame and setting variable types for the columns
   df <- data.frame(Season = integer(),Lg = character(),AllNba = logical(),TotalAllNba = integer(),
@@ -809,11 +837,9 @@ loadAwardsData <- function() {
   df <- df.temp
   
   return(df)
-}
+} 
 
-##################################################################
-################   Load Player Stats Total Data   ################
-##################################################################
+# load player total stats data
 loadTotalsData <- function(yr_start, yr_end) {
   # creating final data frame and setting variable types for the columns
   df <- data.frame(Rk = integer(),Player = character(),Pos = character(),Age = double(),
@@ -890,8 +916,17 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   return(df)
 }
+```
 
-# load all data in from Basketball Reference (basketball-reference.com)
+```{r Data Collection and Processing, message=TRUE, warning=TRUE}
+# historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
+# however, only consider All-NBA selections from the 1999-2000 season and onwards
+# Karl Malone was the first drafted player from the 2000 All-NBA team so wanted to grab his entire
+# career stats, as well as all other players
+YEAR_START <- 1986
+YEAR_END <- 2019
+
+# load all data in from Basketball-Reference.com
 data_all_nba <- loadAwardsData()
 data_player_totals <- loadTotalsData(2000, YEAR_END)
 data_player_totals$YearsInNba <- data_player_totals$Season - as.integer(data_player_totals$DraftYear)

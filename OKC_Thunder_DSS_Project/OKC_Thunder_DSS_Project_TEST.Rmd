@@ -118,14 +118,14 @@ simulate_all_nba <- function(data) {
     pred_center <- predict(red_model_center, newdata = test_center_set, type = "response")
     
     if (length(pred_guard) > 0) {
-      all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, length(pred_guard)]), ]
+      all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, length(pred_guard))]), ]
       for (index in 1:dim(all_nba_guard)[1]) {
         player <- all_nba_guard[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
       }
     }
     if (length(pred_center) > 0) {
-      all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center, decreasing=TRUE)][1:min(3,length(pred_center)]),]
+      all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center, decreasing=TRUE)][1:min(3,length(pred_center))]),]
       for (index in 1:dim(all_nba_center)[1]) {
         player <- all_nba_center[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year), ]$TotalAllNba <- 1

@@ -2199,3 +2199,165 @@ Rk,Year,Lg,Rd,Pk,Tm,Player,Age,Pos,Born,College,From,To,G,MP,PTS,TRB,AST,STL,BLK
 2198,2019,NBA,2,58,GSW,Miye Oni\onimi01,,G,us,Yale,,,,,,,,,,,,,,,
 2199,2019,NBA,2,59,TOR,Dewan Hernandez\hernade01,,F,us,Miami (FL),,,,,,,,,,,,,,,
 2200,2019,NBA,2,60,SAC,Vanja Marinković\marinva01,,G,rs,,,,,,,,,,,,,,,,
+1,1985,NBA,1,1,NYK,Patrick Ewing\ewingpa01,22.323,C-F,jm,Georgetown,1986,2002,1183,34.3,21.0,9.8,1.9,1.0,2.4,.504,.507,.152,.740,126.4,.150
+2,1985,NBA,1,2,IND,Wayman Tisdale\tisdawa01,21.014,F-C,us,Oklahoma,1986,1997,840,28.4,15.3,6.1,1.3,0.6,0.6,.505,.506,.000,.760,45.7,.092
+3,1985,NBA,1,3,LAC,Benoit Benjamin\benjabe01,20.213,C,us,Creighton,1986,2000,807,27.2,11.4,7.5,1.3,0.6,2.0,.497,.498,.048,.721,32.7,.072
+4,1985,NBA,1,4,SEA,Xavier McDaniel\mcdanxa01,22.020,F,us,Wichita State,1986,1998,870,29.0,15.6,6.1,2.0,0.9,0.5,.485,.491,.261,.718,47.8,.091
+5,1985,NBA,1,5,ATL,Jon Koncak\koncajo01,22.038,C-F,us,SMU,1986,1996,784,20.9,4.5,4.9,1.0,0.7,1.0,.470,.477,.226,.597,29.2,.085
+6,1985,NBA,1,6,SAC,Joe Kleine\kleinjo01,23.171,C,us,Arkansas,1986,2000,965,15.2,4.8,4.1,0.6,0.3,0.3,.453,.455,.271,.794,19.1,.062
+7,1985,NBA,1,7,GSW,Chris Mullin\mullich01,21.329,F-G,us,St. John's,1986,2001,986,32.6,18.2,4.1,3.5,1.6,0.6,.509,.533,.384,.865,93.1,.139
+8,1985,NBA,1,8,DAL,Detlef Schrempf\schrede01,22.154,F-C,de,Washington,1986,2001,1136,29.6,13.9,6.2,3.4,0.8,0.3,.491,.505,.384,.803,109.5,.156
+9,1985,NBA,1,9,CLE,Charles Oakley\oaklech01,21.188,F-C,us,Virginia Union University,1986,2004,1282,31.4,9.7,9.5,2.5,1.1,0.3,.471,.477,.253,.761,89.7,.107
+10,1985,NBA,1,10,PHO,Ed Pinckney\pincked01,22.089,F,us,Villanova,1986,1997,793,19.8,6.8,5.0,0.9,0.8,0.5,.535,.538,.000,.765,42.7,.130
+11,1985,NBA,1,11,CHI,Keith Lee\leeke01,22.178,F-C,us,Memphis,1986,1989,182,16.0,6.1,4.7,1.0,0.4,0.6,.451,.454,.167,.746,3.7,.062
+12,1985,NBA,1,12,WSB,Kenny Green\greenke02,20.255,F,us,Wake Forest,1986,1987,60,10.4,4.4,1.7,0.3,0.2,0.2,.412,.414,.000,.721,-0.3,-0.022
+13,1985,NBA,1,13,UTA,Karl Malone\malonka01,21.335,F,us,Louisiana Tech,1986,2004,1476,37.2,25.0,10.1,3.6,1.4,0.8,.516,.519,.274,.742,234.6,.205
+14,1985,NBA,1,14,SAS,Alfredrick Hughes\hugheri01,22.340,F-G,us,Loyola Chicago,1986,1986,68,12.7,5.2,1.7,0.9,0.4,0.1,.409,.420,.176,.583,-0.5,-0.029
+15,1985,NBA,1,15,DEN,Blair Rasmussen\rasmubl01,22.223,C,us,Oregon,1986,1993,532,21.4,9.6,5.7,0.9,0.4,0.9,.472,.473,.257,.767,19.0,.080
+16,1985,NBA,1,16,DAL,Bill Wennington\wennibi01,22.059,C,ca,St. John's,1986,2000,720,13.5,4.6,3.0,0.6,0.3,0.3,.459,.463,.139,.787,17.7,.087
+17,1985,NBA,1,17,DAL,Uwe Blab\blabuw01,23.090,C,de,Indiana,1986,1990,235,8.4,2.1,1.8,0.4,0.1,0.4,.433,.433,,.608,0.4,.009
+18,1985,NBA,1,18,DET,Joe Dumars\dumarjo01,22.031,G,us,McNeese State University,1986,1999,1018,34.5,16.1,2.2,4.5,0.9,0.1,.460,.480,.382,.843,86.2,.118
+19,1985,NBA,1,19,HOU,Steve Harris\harrist01,21.252,G,us,Tulsa,1986,1990,207,13.7,7.0,1.8,1.1,0.6,0.1,.434,.440,.050,.842,3.1,.053
+20,1985,NBA,1,20,BOS,Sam Vincent\vincesa01,22.037,G,us,Michigan State,1986,1992,396,19.0,7.8,2.1,3.9,0.7,0.2,.449,.458,.182,.863,10.9,.069
+21,1985,NBA,1,21,PHI,Terry Catledge\catlete01,21.306,F,us,University of South Alabama,1986,1993,515,26.3,12.7,6.4,0.9,0.6,0.2,.485,.487,.094,.654,20.9,.074
+22,1985,NBA,1,22,MIL,Jerry Reynolds\reynoje01,22.183,G-F,us,LSU,1986,1996,443,18.9,9.1,3.0,2.0,1.1,0.6,.418,.425,.226,.749,10.5,.060
+23,1985,NBA,1,23,LAL,A.C. Green\greenac01,21.263,F-C,us,Oregon State,1986,2001,1278,28.6,9.6,7.4,1.1,0.8,0.4,.494,.507,.254,.734,99.5,.131
+24,1985,NBA,1,24,POR,Terry Porter\portete01,22.077,G,us,University of Wisconsin-Stevens Point,1986,2002,1274,27.8,12.2,3.0,5.6,1.2,0.1,.463,.493,.386,.836,110.4,.150
+25,1985,NBA,2,25,POR,Mike Smrek\smrekmi01,22.297,C,ca,Canisius College,1986,1992,194,9.7,2.9,2.2,0.3,0.2,0.8,.431,.433,.000,.617,0.7,.018
+26,1985,NBA,2,26,IND,Bill Martin\martibi01,22.312,F,us,Georgetown,1986,1988,84,10.2,4.7,1.6,0.7,0.4,0.1,.449,.460,.000,.813,0.3,.016
+27,1985,NBA,2,27,IND,Dwayne McClain\mccladw01,22.137,G,us,Villanova,1986,1986,45,10.2,3.5,0.7,1.5,0.8,0.1,.383,.398,.111,.514,-0.3,-0.026
+28,1985,NBA,2,28,CHI,Ken Johnson\johnske01,22.229,F,us,Michigan State,1986,1986,64,12.7,4.1,3.8,0.3,0.2,0.3,.528,.528,,.435,0.8,.044
+29,1985,NBA,2,29,SAS,Mike Brittain\brittmi01,22.003,C,us,South Carolina,1986,1987,38,6.5,1.7,1.4,0.2,0.1,0.3,.500,.500,,.524,-0.1,-0.011
+30,1985,NBA,2,30,CLE,Calvin Duncan,,,,Virginia Commonwealth,,,,,,,,,,,,,,,
+31,1985,NBA,2,31,WSB,Manute Bol\bolma01,22.251,C,ss,University of Bridgeport,1986,1995,624,18.7,2.6,4.2,0.3,0.2,3.3,.407,.435,.210,.561,12.3,.051
+32,1985,NBA,2,32,PHO,Nick Vanos\vanosni01,22.072,C,us,Santa Clara University,1986,1987,68,12.4,3.3,3.5,0.9,0.3,0.4,.383,.386,.000,.561,-0.1,-0.007
+33,1985,NBA,2,33,PHI,Greg Stokes\stokegr01,21.323,F-C,us,Iowa,1986,1990,42,9.1,3.1,1.5,0.4,0.3,0.3,.445,.449,.000,.696,0.3,.041
+34,1985,NBA,2,34,CHI,Aubrey Sherrod,,,,Wichita State,,,,,,,,,,,,,,,
+35,1985,NBA,2,35,SAS,Tyrone Corbin\corbity01,22.175,G-F,us,DePaul,1986,2001,1065,26.0,9.2,4.7,1.8,1.2,0.3,.456,.470,.299,.791,56.5,.098
+36,1985,NBA,2,36,NJN,Yvon Joseph\josepyv01,27.237,C,ht,Georgia Tech,1986,1986,1,5.0,2.0,0.0,0.0,0.0,0.0,,,,1.000,0.0,.309
+37,1985,NBA,2,37,UTA,Carey Scurry\scurrca01,22.202,F,us,Long Island University,1986,1988,180,13.2,4.7,2.9,1.1,1.0,0.8,.480,.492,.250,.666,5.3,.107
+38,1985,NBA,2,38,NJN,Fernando Martín\martife01,23.091,C,es,,1987,1987,24,6.1,0.9,1.2,0.4,0.3,0.0,.290,.300,.000,.364,-0.4,-0.144
+39,1985,NBA,2,39,POR,George Montgomery,,,,Illinois,,,,,,,,,,,,,,,
+40,1985,NBA,2,40,DAL,Mark Acres\acresma01,22.221,F-C,us,Oral Roberts,1988,1993,375,16.0,3.6,4.1,0.5,0.4,0.3,.506,.505,.538,.665,9.3,.075
+41,1985,NBA,2,41,ATL,Lorenzo Charles\charllo01,21.211,F,us,NC State,1986,1986,36,7.6,3.4,1.1,0.2,0.1,0.2,.557,.557,,.667,0.5,.086
+42,1985,NBA,2,42,GSW,Bobby Lee Hurt,,,,Alabama,,,,,,,,,,,,,,,
+43,1985,NBA,2,43,DEN,Barry Stevens\steveba01,22.158,G-F,us,Iowa State,1993,1993,2,3.0,1.0,1.0,0.0,0.0,0.0,.500,.500,,,0.0,.157
+44,1985,NBA,2,44,PHI,Voise Winters\wintevo01,22.255,F,us,Bradley,1986,1986,4,4.3,1.5,0.8,0.0,0.3,0.0,.231,.250,.000,,-0.1,-0.355
+45,1985,NBA,2,45,CLE,Hot Rod Williams\williho01,22.319,F-C,us,Tulane,1987,1999,887,29.7,11.0,6.8,1.8,0.8,1.6,.480,.481,.105,.726,70.5,.129
+46,1985,NBA,2,46,CHI,Adrian Branch\brancad01,21.219,F-G,us,Maryland,1987,1990,130,11.0,6.4,1.9,0.7,0.6,0.1,.455,.468,.231,.744,2.1,.070
+47,1985,NBA,2,47,NYK,Gerald Wilkins\wilkige01,21.286,G-F,us,Chattanooga,1986,1999,900,29.0,13.0,2.9,3.0,1.0,0.2,.450,.469,.316,.745,33.9,.062
+48,1985,NBA,3,48,IND,Kenny Patterson,,,,DePaul,,,,,,,,,,,,,,,
+49,1985,NBA,3,49,GSW,Brad Wright\wrighbr01,23.090,F,us,UCLA,1987,1988,16,9.1,3.4,3.4,0.1,0.2,0.4,.412,.420,.000,.429,-0.1,-0.045
+50,1985,NBA,3,50,DAL,Leonard Allen,,,,San Diego State,,,,,,,,,,,,,,,
+51,1985,NBA,3,51,SAC,Charles Bradley,,,,University of South Florida,,,,,,,,,,,,,,,
+52,1985,NBA,3,52,LAC,Anicet Lavodrama,,,,Houston Baptist University,,,,,,,,,,,,,,,
+53,1985,NBA,3,53,SEA,Rolando Lamb,,,,Virginia Commonwealth,,,,,,,,,,,,,,,
+54,1985,NBA,3,54,HOU,Sam Mitchell\mitchsa01,21.295,F,us,Mercer University,1990,2002,994,22.4,8.7,3.7,1.1,0.6,0.3,.447,.456,.223,.784,41.7,.090
+55,1985,NBA,3,55,CLE,Herb Johnson,,,,Tulsa,,,,,,,,,,,,,,,
+56,1985,NBA,3,56,PHO,Jerry Everett,,,,Lamar University,,,,,,,,,,,,,,,
+57,1985,NBA,3,57,HOU,Michael Payne,,,,Iowa,,,,,,,,,,,,,,,
+58,1985,NBA,3,58,WSB,Vernon Moore,,,,Creighton,,,,,,,,,,,,,,,
+59,1985,NBA,3,59,ATL,Sedric Toney\toneyse01,23.072,G,us,Dayton,1986,1994,112,12.6,3.7,0.9,2.1,0.4,0.0,.365,.372,.341,.781,0.0,.000
+60,1985,NBA,3,60,DET,Andre Goode,,,,Northwestern,,,,,,,,,,,,,,,
+61,1985,NBA,3,61,POR,Perry Young\youngpe01,21.324,G,us,Virginia Tech,1987,1987,9,8.0,1.4,0.9,0.8,0.6,0.1,.286,.286,,.500,-0.1,-0.047
+62,1985,NBA,3,62,NJN,Nigel Manuel,,,,UCLA,,,,,,,,,,,,,,,
+63,1985,NBA,3,63,DAL,Harold Keeling\keeliha01,21.279,G,us,Santa Clara University,1986,1986,20,3.8,2.2,0.3,0.5,0.4,0.0,.436,.436,,.714,0.1,.041
+64,1985,NBA,3,64,DET,Richie Johnson,,,,University of Evansville,,,,,,,,,,,,,,,
+65,1985,NBA,3,65,WSB,Ken Perry,,,,Southern Illinois,,,,,,,,,,,,,,,
+66,1985,NBA,3,66,SAC,Michael Adams\adamsmi01,22.156,G,us,Boston College,1986,1996,653,31.3,14.7,2.9,6.4,1.7,0.1,.415,.462,.332,.849,46.9,.110
+67,1985,NBA,3,67,PHI,Steve Black,,,,La Salle,,,,,,,,,,,,,,,
+68,1985,NBA,3,68,MIL,Eugene McDowell,,,,Florida,,,,,,,,,,,,,,,
+69,1985,NBA,3,69,CHI,Mike Brown\brownmi01,21.340,C-F,us,George Washington,1987,1997,626,17.5,5.0,4.4,0.7,0.4,0.3,.455,.456,.125,.690,15.9,.069
+70,1985,NBA,3,70,BOS,Andre Battle,,,,Loyola Chicago,,,,,,,,,,,,,,,
+71,1985,NBA,4,71,GSW,Luster Goodwin,,,,Texas-El Paso,,,,,,,,,,,,,,,
+72,1985,NBA,4,72,IND,Vince Hamilton,,,,Clemson,,,,,,,,,,,,,,,
+73,1985,NBA,4,73,NYK,Fred Cofield\cofiefr01,23.171,G,us,Eastern Michigan University,1986,1987,50,9.9,3.4,1.0,1.7,0.4,0.1,.395,.413,.188,.600,-0.5,-0.044
+74,1985,NBA,4,74,LAC,Jim Deines,,,,Arizona State,,,,,,,,,,,,,,,
+75,1985,NBA,4,75,SEA,Alex Stivrins\stivral01,22.207,F,us,Colorado,1986,1993,22,4.1,2.0,1.0,0.2,0.1,0.1,.465,.488,.000,.500,-0.1,-0.043
+76,1985,NBA,4,76,SAC,Willie Simmons,,,,Louisiana Tech,,,,,,,,,,,,,,,
+77,1985,NBA,4,77,ATL,Arvydas Sabonis\sabonar01,20.186,C,lt,,1996,2003,470,24.2,12.0,7.3,2.1,0.8,1.1,.500,.520,.328,.786,47.3,.200
+78,1985,NBA,4,78,PHO,Granger Hall,,,,Temple,,,,,,,,,,,,,,,
+79,1985,NBA,4,79,CLE,Mark Davis\davisma01,22.016,F-G,us,Old Dominion,1989,1989,33,7.8,3.8,1.1,0.4,0.4,0.2,.480,.522,.100,.824,0.7,.134
+80,1985,NBA,4,80,CHI,Craig Beard,,,,Samford University,,,,,,,,,,,,,,,
+81,1985,NBA,4,81,WSB,Richie Adams,,,,UNLV,,,,,,,,,,,,,,,
+82,1985,NBA,4,82,SAS,Scott Roth\rothsc01,22.021,F,us,Wisconsin,1988,1990,160,11.2,4.7,1.3,1.2,0.5,0.1,.375,.387,.291,.730,1.1,.030
+83,1985,NBA,4,83,UTA,Delaney Rudd\ruddde01,22.228,G,us,Wake Forest,1990,1993,239,9.9,3.4,0.8,2.2,0.3,0.0,.413,.459,.257,.761,0.7,.014
+84,1985,NBA,4,84,ATL,John Battle\battljo01,22.227,G,us,Rutgers University,1986,1995,612,17.8,8.7,1.3,2.1,0.4,0.1,.464,.474,.273,.793,17.9,.079
+85,1985,NBA,4,85,POR,Joe Atkinson,,,,Oklahoma State,,,,,,,,,,,,,,,
+86,1985,NBA,4,86,DAL,Bubba Jennings,,,,Texas Tech,,,,,,,,,,,,,,,
+87,1985,NBA,4,87,DET,Spud Webb\webbsp01,21.346,G,us,NC State,1986,1998,814,24.9,9.9,2.1,5.3,1.1,0.1,.452,.478,.314,.848,40.2,.095
+88,1985,NBA,4,88,HOU,Mike Brooks,,,,Tennessee,,,,,,,,,,,,,,,
+89,1985,NBA,4,89,DEN,Pete Williams\willipe01,20.105,F,us,Arizona,1986,1987,58,10.1,2.6,2.5,0.3,0.3,0.4,.602,.602,,.425,1.4,.112
+90,1985,NBA,4,90,PHI,Derrick Gervin\gervide01,22.088,F,us,University of Texas at San Antonio,1990,1991,77,14.1,8.8,2.3,0.5,0.5,0.3,.435,.446,.226,.764,2.1,.095
+91,1985,NBA,4,91,MIL,Cozell McQueen\mcqueco01,23.157,F,fr,NC State,1987,1987,3,2.3,2.0,2.7,0.0,0.0,0.3,1.000,1.000,,,0.1,.627
+92,1985,NBA,4,92,LAL,Dexter Shouse\shousde01,22.092,G,us,University of South Alabama,1990,1990,3,6.0,0.0,0.0,0.7,0.3,0.3,.000,.000,.000,,-0.1,-0.281
+93,1985,NBA,4,93,BOS,Cliff Weber,,,,Liberty,,,,,,,,,,,,,,,
+94,1985,NBA,5,94,IND,Kelvin Johnson,,,,University of Richmond,,,,,,,,,,,,,,,
+95,1985,NBA,5,95,GSW,Greg Cavener,,,,Missouri,,,,,,,,,,,,,,,
+96,1985,NBA,5,96,NYK,Mike Schlegel,,,,Virginia Commonwealth,,,,,,,,,,,,,,,
+97,1985,NBA,5,97,SEA,Lou Stefanovic,,,,Illinois State University,,,,,,,,,,,,,,,
+98,1985,NBA,5,98,SAC,Bob Lojewski,,,,Saint Joseph's,,,,,,,,,,,,,,,
+99,1985,NBA,5,99,LAC,Wayne Carlander,,,,USC,,,,,,,,,,,,,,,
+100,1985,NBA,5,100,ATL,Larry Hampton,,,,Hampton University,,,,,,,,,,,,,,,
+101,1985,NBA,5,101,CLE,Gunther Behnke,,,,,,,,,,,,,,,,,,,
+102,1985,NBA,5,102,PHO,Shawn Campbell,,,,Weber State,,,,,,,,,,,,,,,
+103,1985,NBA,5,103,CHI,Reid Gettys,,,,Houston,,,,,,,,,,,,,,,
+104,1985,NBA,5,104,WSB,Dean Shaffer,,,,Florida State,,,,,,,,,,,,,,,
+105,1985,NBA,5,105,UTA,Ray Hall,,,,Canisius College,,,,,,,,,,,,,,,
+106,1985,NBA,5,106,SAS,Clayton Olivier,,,,USC,,,,,,,,,,,,,,,
+107,1985,NBA,5,107,POR,James Anderson,,,,Union College,,,,,,,,,,,,,,,
+108,1985,NBA,5,108,NJN,Kelly Blaine,,,,University of South Alabama,,,,,,,,,,,,,,,
+109,1985,NBA,5,109,DAL,Tommy Davis,,,,Minnesota,,,,,,,,,,,,,,,
+110,1985,NBA,5,110,DET,Mike Lahm,,,,Murray State,,,,,,,,,,,,,,,
+111,1985,NBA,5,111,IND,Ivan Daniels,,,,University of Illinois at Chicago,,,,,,,,,,,,,,,
+112,1985,NBA,5,112,DEN,Kenny Brown,,,,Texas A&M,,,,,,,,,,,,,,,
+113,1985,NBA,5,113,PHI,Carl Wright,,,,SMU,,,,,,,,,,,,,,,
+114,1985,NBA,5,114,MIL,Ray Knight,,,,Providence,,,,,,,,,,,,,,,
+115,1985,NBA,5,115,LAL,Timo Saarelainen,,,,BYU,,,,,,,,,,,,,,,
+116,1985,NBA,5,116,BOS,Albert Butts,,,,La Salle,,,,,,,,,,,,,,,
+117,1985,NBA,6,117,GSW,Gerald Crosby,,,,Georgia,,,,,,,,,,,,,,,
+118,1985,NBA,6,118,IND,Stu Primus,,,,Boston College,,,,,,,,,,,,,,,
+119,1985,NBA,6,119,NYK,Kent Lockhart,,,,Texas-El Paso,,,,,,,,,,,,,,,
+120,1985,NBA,6,120,SAC,Charles Balentine,,,,Arkansas,,,,,,,,,,,,,,,
+121,1985,NBA,6,121,LAC,Malcolm Thomas,,,,Missouri,,,,,,,,,,,,,,,
+122,1985,NBA,6,122,SEA,Earl Walker,,,,Mercer University,,,,,,,,,,,,,,,
+123,1985,NBA,6,123,ATL,Tony Duckett,,,,Lafayette College,,,,,,,,,,,,,,,
+124,1985,NBA,6,124,PHO,Charles Rayne,,,,Temple,,,,,,,,,,,,,,,
+125,1985,NBA,6,125,CLE,Ricky Johnson,,,,Illinois State University,,,,,,,,,,,,,,,
+126,1985,NBA,6,126,CHI,Dan Meagher,,,,Duke,,,,,,,,,,,,,,,
+127,1985,NBA,6,127,WSB,Matt England,,,,Houston Baptist University,,,,,,,,,,,,,,,
+128,1985,NBA,6,128,SAS,Chris Harper,,,,Oregon,,,,,,,,,,,,,,,
+129,1985,NBA,6,129,UTA,Jim Miller,,,,Virginia,,,,,,,,,,,,,,,
+130,1985,NBA,6,130,NJN,George Almones,,,,Louisiana,,,,,,,,,,,,,,,
+131,1985,NBA,6,131,POR,Curtis Moore,,,,Nebraska,,,,,,,,,,,,,,,
+132,1985,NBA,6,132,DAL,Carlton Cooper,,,,Texas,,,,,,,,,,,,,,,
+133,1985,NBA,6,133,DET,Vincent Giles,,,,Eastern Michigan University,,,,,,,,,,,,,,,
+134,1985,NBA,6,134,HOU,Sam Potter,,,,Oral Roberts,,,,,,,,,,,,,,,
+135,1985,NBA,6,135,DEN,Joe Carrabino,,,,Harvard University,,,,,,,,,,,,,,,
+136,1985,NBA,6,136,PHI,Daryl Lloyd,,,,Drake University,,,,,,,,,,,,,,,
+137,1985,NBA,6,137,MIL,Quentin Anderson,,,,Texas Tech,,,,,,,,,,,,,,,
+138,1985,NBA,6,138,LAL,Tony Neal,,,,California State University Fullerton,,,,,,,,,,,,,,,
+139,1985,NBA,6,139,BOS,Ralph Lewis\lewisra01,22.088,F-G,us,La Salle,1988,1990,99,6.8,2.3,1.2,0.3,0.3,0.1,.414,.417,.250,.562,0.0,-0.003
+140,1985,NBA,7,140,IND,Jeff Acres,,,,Oral Roberts,,,,,,,,,,,,,,,
+141,1985,NBA,7,141,GSW,Eric Boyd,,,,North Carolina A&T,,,,,,,,,,,,,,,
+142,1985,NBA,7,142,NYK,Ken Bantum,,,,Cornell University,,,,,,,,,,,,,,,
+143,1985,NBA,7,143,LAC,Gary Maloncon,,,,UCLA,,,,,,,,,,,,,,,
+144,1985,NBA,7,144,SEA,Michael Phelps\phelpmi01,23.264,G,us,Alcorn State University,1986,1988,132,10.4,3.6,1.1,1.0,0.5,0.0,.416,.432,.091,.639,0.3,.012
+145,1985,NBA,7,145,SAC,Alton Lee Gipson,,,,Florida State,,,,,,,,,,,,,,,
+146,1985,NBA,7,146,ATL,Bob Ferry,,,,Harvard University,,,,,,,,,,,,,,,
+147,1985,NBA,7,147,CLE,Buzz Peterson,,,,UNC,,,,,,,,,,,,,,,
+148,1985,NBA,7,148,PHO,Georgi Glouchkov\gloucge01,25.166,F,bg,,1986,1986,49,15.8,4.9,3.3,0.7,0.5,0.5,.402,.399,1.000,.574,-0.5,-0.029
+149,1985,NBA,7,149,CHI,Jeff Adkins,,,,Maryland,,,,,,,,,,,,,,,
+150,1985,NBA,7,150,WSB,Keith Gray,,,,Detroit Mercy,,,,,,,,,,,,,,,
+151,1985,NBA,7,151,UTA,Mike Wacker,,,,University of Texas at San Antonio,,,,,,,,,,,,,,,
+152,1985,NBA,7,152,SAS,Al Young,,,,Virginia Tech,,,,,,,,,,,,,,,
+153,1985,NBA,7,153,POR,Mark Owen,,,,Albertson College of Idaho,,,,,,,,,,,,,,,
+154,1985,NBA,7,154,NJN,Gary McLain,,,,Villanova,,,,,,,,,,,,,,,
+155,1985,NBA,7,155,DAL,Ed Catchings,,,,UNLV,,,,,,,,,,,,,,,
+156,1985,NBA,7,156,DET,Frank James,,,,UNLV,,,,,,,,,,,,,,,
+157,1985,NBA,7,157,IND,Don Turney,,,,Marshall,,,,,,,,,,,,,,,
+158,1985,NBA,7,158,DEN,Eddie Smith,,,,Arizona,,,,,,,,,,,,,,,
+159,1985,NBA,7,159,PHI,Jaye Andrews,,,,Bucknell,,,,,,,,,,,,,,,
+160,1985,NBA,7,160,MIL,Mario Elie\eliema01,21.210,G-F,us,American International College,1991,2001,732,25.5,8.6,2.8,2.6,0.9,0.2,.473,.530,.365,.854,48.9,.126
+161,1985,NBA,7,161,LAL,Keith Cleplicki,,,,College of William & Mary,,,,,,,,,,,,,,,
+162,1985,NBA,7,162,BOS,Chris Remly,,,,Rutgers University,,,,,,,,,,,,,,,

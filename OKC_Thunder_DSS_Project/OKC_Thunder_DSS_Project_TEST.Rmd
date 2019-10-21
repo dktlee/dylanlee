@@ -27,10 +27,10 @@ library(tidyverse)
 ##################################################################
 # will predict response for data using the model given, and will return an ordered list ranking the nba players from highest probability
 # of being selected as an All-NBA player to lowest
-predAllNbaPlayers <- function(data,model){
-  pred <- predict(model,newdata=data,type="response")
-  all_nba_players <- data[0,]
-  all_nba_players <- data[order(pred,decreasing=TRUE),]
+predAllNbaPlayers <- function(data, model) {
+  pred <- predict(model, newdata = data, type = "response")
+  all_nba_players <- data[0, ]
+  all_nba_players <- data[order(pred, decreasing = TRUE), ]
   return(all_nba_players)
 }
 
@@ -39,7 +39,8 @@ predAllNbaPlayers <- function(data,model){
 ##################################################################
 # will calculate the accuracy of the prediction
 calcAccuracy <- function(all_nba_players) {
-  correct <- all_nba_players[which(all_nba_players$TotalAllNba == 1),]
+  correct <-
+    all_nba_players[which(all_nba_players$TotalAllNba == 1),]
   return(dim(correct)[1] / dim(all_nba_players)[1])
 }
 
@@ -117,14 +118,14 @@ simulate_all_nba <- function(data) {
     pred_guard <- predict(red_model_guard,newdata = test_guard_set,type = "response")
     pred_center <- predict(red_model_center,newdata = test_center_set,type = "response")
     
-    if (dim(pred_guard)[1] >0) {
+    if (length(pred_guard) >0) {
       all_nba_guard <- test_guard_set[which(pred_guard >= pred_guard[order(pred_guard,decreasing=TRUE)][1:min(6,dim(pred_guard)[1])]),]
       for (index in 1:dim(all_nba_guard)[1]) {
         player <- all_nba_guard[index,]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player & df.forecast.normalize$Season == year),]$TotalAllNba <- 1
       }
     }
-    if (dim(pred_center)[1] >0) {
+    if (length(pred_center) >0) {
       all_nba_center <- test_center_set[which(pred_center >= pred_center[order(pred_center,decreasing=TRUE)][1:min(6,dim(pred_center)[1])]),]
       for (index in 1:dim(all_nba_center)[1]) {
         player <- all_nba_center[index,]

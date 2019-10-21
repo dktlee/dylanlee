@@ -30,6 +30,28 @@ calcAccuracy <- function(all_nba_players) {
   return(dim(correct)[1] / dim(all_nba_players)[1])
 }
 
+cross_validation_all_nba_players <- function(data,model,position) {
+  accuracies <- c()
+  for (year in min(data$Season):max(data$Season)) {
+    test <- data[which(data$Season == year),]
+    train <- data[which(data$Season != year),]
+    if (model$call[1] == "glm()") {
+      cv.model <- glm(model$call[2],data=train,family=binomial(link="logit"))
+    } else if (model$call[1] == "lm()") {
+      cv.model <- lm(model$call[2],data=train)
+    }
+    if (position == "guard") {
+      accuracy <- calcAccuracy(predAllNbaPlayers(test, cv.model)[1:6,])
+    } else if (position == "forward") {
+      accuracy <- calcAccuracy(predAllNbaPlayers(test, cv.model)[1:6,])
+    } else if (position == "center") {
+      accuracy <- calcAccuracy(predAllNbaPlayers(test, cv.model)[1:3,])
+    }
+    accuracies <- cbind(accuracies,accuracy)
+  }
+  return(accuracies)
+}
+
 ```
 
 ```{r Data Collection and Processing}
@@ -1152,7 +1174,7 @@ a <- corrplot(corr.matrix.adv_filtered[1,2:25,drop=FALSE], title="Correlation: P
 # support this with the evidence from the career totals that more stats = more All-NBA selections
 # use Binomial Distribution to estimate
 # incorporate advanced stats into the same dataframe as counting
-
+# use par(mfrow=c(2,2)) to graph plots in grid: https://www.statmethods.net/advgraphs/layout.html
 ```
 
 ``` {r Data Analysis: Part 6- Normalize Data}
@@ -1206,7 +1228,7 @@ center_data_totals <- data_player_totals_filtered[which(data_player_totals_filte
 lm.guard.total.full <- lm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                           data = guard_data_totals[which(guard_data_totals$Season != 2019),])
-# lm.guard.total.reduced <- step(lm.guard.total.full)
+# lm.guard.total.reduced <- step(lm.guard.total.full, trace = 0)
 lm.guard.total.reduced <- lm(TotalAllNba ~ TeamWins+GP+GS+MP+FGM+FGA+FGperc+TwoPM+TwoPA+TwoPperc+
                                           eFGperc+FTM+FTperc+ORB+TRB+AST+STL+BLK+TOV+PF,
                              data = guard_data_totals[which(guard_data_totals$Season != 2019),])
@@ -1244,7 +1266,7 @@ log.guard.total.full <- glm(TotalAllNba ~ TeamWins+Age+GP+GS+MP+FGM+FGA+FGperc+T
                                         eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
                             data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
 # log.guard.total.reduced <- step(log.guard.total.full, trace = 0)
-log.guard.total.reduced <- glm(TotalAllNba ~ TeamWins+GPFGM+FGA+FGperc+eFGperc+FTM+TRB+AST+STL+TOV+PF+PTS,
+log.guard.total.reduced <- glm(TotalAllNba ~ TeamWins+GP+FGM+FGA+FGperc+eFGperc+FTM+TRB+AST+STL+TOV+PF+PTS,
                                data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
 # summary(log.guard.total.reduced)
 log.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], log.guard.total.reduced)[1:6,]
@@ -1399,7 +1421,7 @@ log.guard.adv.full <- glm(TotalAllNba ~ TeamWins+Age+GP+MP+PER+TSperc+ThreePAr+F
                                         ASTperc+STLperc+BLKperc+TOVperc+USGperc+OWS+DWS+WS+WSper48+OBPM+DBPM+VORP,
                             data = guard_data_adv[which(guard_data_adv$Season != 2019),], family = binomial(link="logit"))
 # log.guard.adv.reduced <- step(log.guard.adv.full, trace = 0)
-log.guard.adv.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+TRBperc+ASTperc+USGperc+OWS+DWS+WS+WSper48,
+log.guard.adv.reduced <- glm(TotalAllNba ~ TeamWins+GP+MP+TRBperc+ASTperc+USGperc+OWS+DWS+WSper48,
                              data = guard_data_adv[which(guard_data_adv$Season != 2019),], family = binomial(link="logit"))
 # summary(log.guard.adv.reduced)
 log.guard.adv.full.pred <- predAllNbaPlayers(guard_data_adv[which(guard_data_adv$Season == 2019),], log.guard.adv.reduced)[1:6,]
@@ -1545,7 +1567,7 @@ lm.total.red.acc <- calcAccuracy(lm.total.all_nba_team.red)
 # all nba team
 log.total.all_nba_team.full <- rbind(log.guard.total.full.pred,log.forward.total.full.pred,log.center.total.full.pred)
 log.total.all_nba_team.red <- rbind(log.guard.total.red.pred,log.forward.total.red.pred,log.center.total.red.pred)
-# linear accuracy
+# logistic accuracy
 log.total.full.acc <- calcAccuracy(log.total.all_nba_team.full)
 log.total.red.acc <- calcAccuracy(log.total.all_nba_team.red)
 # all nba team
@@ -1557,7 +1579,7 @@ lm.pergame.red.acc <- calcAccuracy(lm.pergame.all_nba_team.red)
 # all nba team
 log.pergame.all_nba_team.full <- rbind(log.guard.pergame.full.pred,log.forward.pergame.full.pred,log.center.pergame.full.pred)
 log.pergame.all_nba_team.red <- rbind(log.guard.pergame.red.pred,log.forward.pergame.red.pred,log.center.pergame.red.pred)
-# linear accuracy
+# logistic accuracy
 log.pergame.full.acc <- calcAccuracy(log.pergame.all_nba_team.full)
 log.pergame.red.acc <- calcAccuracy(log.pergame.all_nba_team.red)
 # all nba team
@@ -1569,7 +1591,7 @@ lm.adv.red.acc <- calcAccuracy(lm.adv.all_nba_team.red)
 # all nba team
 log.adv.all_nba_team.full <- rbind(log.guard.adv.full.pred,log.forward.adv.full.pred,log.center.adv.full.pred)
 log.adv.all_nba_team.red <- rbind(log.guard.adv.red.pred,log.forward.adv.red.pred,log.center.adv.red.pred)
-# linear accuracy
+# logistic accuracy
 log.adv.full.acc <- calcAccuracy(log.adv.all_nba_team.full)
 log.adv.red.acc <- calcAccuracy(log.adv.all_nba_team.red)
 # all nba team
@@ -1581,11 +1603,11 @@ lm.merge.red.acc <- calcAccuracy(lm.merge.all_nba_team.red)
 # all nba team
 log.merge.all_nba_team.full <- rbind(log.guard.merge.full.pred,log.forward.merge.full.pred,log.center.merge.full.pred)
 log.merge.all_nba_team.red <- rbind(log.guard.merge.red.pred,log.forward.merge.red.pred,log.center.merge.red.pred)
-# linear accuracy
+# logistic accuracy
 log.merge.full.acc <- calcAccuracy(log.merge.all_nba_team.full)
 log.merge.red.acc <- calcAccuracy(log.merge.all_nba_team.red)
 
-full_vs_red_acc <- data.frame(Data=c("Full Linear","Reduced Linear","Full Logistic","Reduced Linear"),
+full_vs_red_acc <- data.frame(Data=c("Full Linear","Reduced Linear","Full Logistic","Reduced Logistic"),
                               Linear=c(lm.total.full.acc,lm.total.red.acc,lm.pergame.full.acc,lm.pergame.red.acc,
                                        lm.adv.full.acc,lm.adv.red.acc,lm.merge.full.acc,lm.merge.red.acc),
                               Logistic=c(log.total.full.acc,log.total.red.acc,log.pergame.full.acc,log.pergame.red.acc,
@@ -1617,12 +1639,136 @@ legend("bottomright",c("Total Stats","Per Game Stats","Advanced Stats","Total & 
 ```
 
 ```{r Cross Validation}
+lm.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,lm.guard.total.reduced,"guard"))
+lm.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals,lm.forward.total.reduced,"forward"))
+lm.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,lm.center.total.reduced,"center"))
+log.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,log.guard.total.reduced,"guard"))
+log.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals,log.forward.total.reduced,"forward"))
+log.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,log.center.total.reduced,"center"))
+
+lm.guard.pergame.accuracies <- mean(cross_validation_all_nba_players(guard_data_pergame,lm.guard.pergame.reduced,"guard"))
+lm.forward.pergame.accuracies <- mean(cross_validation_all_nba_players(forward_data_pergame,lm.forward.pergame.reduced,"forward"))
+lm.center.pergame.accuracies <- mean(cross_validation_all_nba_players(center_data_pergame,lm.center.pergame.reduced,"center"))
+log.guard.pergame.accuracies <- mean(cross_validation_all_nba_players(guard_data_pergame,log.guard.pergame.reduced,"guard"))
+log.forward.pergame.accuracies <- mean(cross_validation_all_nba_players(forward_data_pergame,log.forward.pergame.reduced,"forward"))
+log.center.pergame.accuracies <- mean(cross_validation_all_nba_players(center_data_pergame,log.center.pergame.reduced,"center"))
+
+lm.guard.adv.accuracies <- mean(cross_validation_all_nba_players(guard_data_adv,lm.guard.adv.reduced,"guard"))
+lm.forward.adv.accuracies <- mean(cross_validation_all_nba_players(forward_data_adv,lm.forward.adv.reduced,"forward"))
+lm.center.adv.accuracies <- mean(cross_validation_all_nba_players(center_data_adv,lm.center.adv.reduced,"center"))
+log.guard.adv.accuracies <- mean(cross_validation_all_nba_players(guard_data_adv,log.guard.adv.reduced,"guard"))
+log.forward.adv.accuracies <- mean(cross_validation_all_nba_players(forward_data_adv,log.forward.adv.reduced,"forward"))
+log.center.adv.accuracies <- mean(cross_validation_all_nba_players(center_data_adv,log.center.adv.reduced,"center"))
+
+lm.guard.merge.accuracies <- mean(cross_validation_all_nba_players(guard_data_merge,lm.guard.merge.reduced,"guard"))
+lm.forward.merge.accuracies <- mean(cross_validation_all_nba_players(forward_data_merge,lm.forward.merge.reduced,"forward"))
+lm.center.merge.accuracies <- mean(cross_validation_all_nba_players(center_data_merge,lm.center.merge.reduced,"center"))
+log.guard.merge.accuracies <- mean(cross_validation_all_nba_players(guard_data_merge,log.guard.merge.reduced,"guard"))
+log.forward.merge.accuracies <- mean(cross_validation_all_nba_players(forward_data_merge,log.forward.merge.reduced,"forward"))
+log.center.merge.accuracies <- mean(cross_validation_all_nba_players(center_data_merge,log.center.merge.reduced,"center"))
+
+linear_vs_log <- data.frame(Data=c("LM - Total","LM - Total","LM - Total","LM - Pergame","LM - Pergame","LM - Pergame",
+                                   "LM - Adv","LM - Adv","LM - Adv","LM - Merge","LM - Merge","LM - Merge"),
+                           Linear=c(lm.guard.total.accuracies,lm.forward.total.accuracies,lm.center.total.accuracies,
+                                    lm.guard.pergame.accuracies,lm.forward.pergame.accuracies,lm.center.pergame.accuracies,
+                                    lm.guard.adv.accuracies,lm.forward.adv.accuracies,lm.center.adv.accuracies,
+                                    lm.guard.merge.accuracies,lm.forward.merge.accuracies,lm.center.merge.accuracies),
+                           Logistic=c(log.guard.total.accuracies,log.forward.total.accuracies,log.center.total.accuracies,
+                                      log.guard.pergame.accuracies,log.forward.pergame.accuracies,log.center.pergame.accuracies,
+                                      log.guard.adv.accuracies,log.forward.adv.accuracies,log.center.adv.accuracies,
+                                      log.guard.merge.accuracies,log.forward.merge.accuracies,log.center.merge.accuracies))
+par(mfrow=c(1,1))
+colours <- viridis(3)
+full_vs_red_plot <- barplot(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[4],linear_vs_log$Logistic[4],
+                              linear_vs_log$Linear[7],linear_vs_log$Logistic[7],linear_vs_log$Linear[10],linear_vs_log$Logistic[10],
+                              linear_vs_log$Linear[2],linear_vs_log$Logistic[2],linear_vs_log$Linear[5],linear_vs_log$Logistic[5],
+                              linear_vs_log$Linear[8],linear_vs_log$Logistic[8],linear_vs_log$Linear[11],linear_vs_log$Logistic[11],
+                              linear_vs_log$Linear[3],linear_vs_log$Logistic[3],linear_vs_log$Linear[6],linear_vs_log$Logistic[6],
+                              linear_vs_log$Linear[9],linear_vs_log$Logistic[9],linear_vs_log$Linear[12],linear_vs_log$Logistic[12]),
+                            names.arg = rep(c("LM - Total","Log - Total","LM - Pergame","Log - Pergame",
+                                              "LM - Adv","Log - Adv","LM - Merge","Log - Merge"),3),
+                            ylim=c(0,1), las=2, col=c(rep(colours[1],8),rep(colours[2],8),rep(colours[3],8)),
+                            ylab="Accuracy",main="Linear vs Logistic Model Accuracy - LOOCV", cex.names = 0.6)
+text(x=full_vs_red_plot,
+     y=c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[4],linear_vs_log$Logistic[4],
+                              linear_vs_log$Linear[7],linear_vs_log$Logistic[7],linear_vs_log$Linear[10],linear_vs_log$Logistic[10],
+                              linear_vs_log$Linear[2],linear_vs_log$Logistic[2],linear_vs_log$Linear[5],linear_vs_log$Logistic[5],
+                              linear_vs_log$Linear[8],linear_vs_log$Logistic[8],linear_vs_log$Linear[11],linear_vs_log$Logistic[11],
+                              linear_vs_log$Linear[3],linear_vs_log$Logistic[3],linear_vs_log$Linear[6],linear_vs_log$Logistic[6],
+                              linear_vs_log$Linear[9],linear_vs_log$Logistic[9],linear_vs_log$Linear[12],linear_vs_log$Logistic[12]),
+     label=round(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[4],linear_vs_log$Logistic[4],
+                              linear_vs_log$Linear[7],linear_vs_log$Logistic[7],linear_vs_log$Linear[10],linear_vs_log$Logistic[10],
+                              linear_vs_log$Linear[2],linear_vs_log$Logistic[2],linear_vs_log$Linear[5],linear_vs_log$Logistic[5],
+                              linear_vs_log$Linear[8],linear_vs_log$Logistic[8],linear_vs_log$Linear[11],linear_vs_log$Logistic[11],
+                              linear_vs_log$Linear[3],linear_vs_log$Logistic[3],linear_vs_log$Linear[6],linear_vs_log$Logistic[6],
+                              linear_vs_log$Linear[9],linear_vs_log$Logistic[9],linear_vs_log$Linear[12],linear_vs_log$Logistic[12]),
+               digits=3),
+     pos=3, cex=0.7)
+legend("bottomright",c("Guards","Forwards","Centers"),
+      fill = colours, cex=0.8)
+# see that that the models perform differently depending on the position
+# for guards, the Logistic model with Total Stats data and the Logistic model with Merged Stats data perform the best,
+# accurately predicting the All-NBA guards 85% of the time, on average, from 2000-2019. I'll choose to use the Logistic
+# model with total stats to stick with because its the simpler model but still performing the best
+# for forwards, the Logistic model with Pergame Stats data and the Logistic model with Advanced Stats perform the best,
+# accuratelty predicting the All-NBA forwards 82.5% of the time, on average, from 2000-2019. I'll choose to use the Logistic
+# model with advanced stats to stick with because its the simpler model but still performing the best
+# for centers, the Logistic model with Total Stats data and the Logistic model with Advanced Stats perform the best,
+# accurately predicting the All-NBA centers 81.7% of the time, on average, from 2000-2019. I'll choose to use the Logistic
+# model with advanced stats to stick with because its the simpler model but still performing the best
 ```
 
 
 ```{r Prediction}
+# get the predictions for Luka Doncic, Karl Anthony-Towns, Kyrie Irving, Stephen Curry and make the predictions
+# I make quite a few assumptions to answer the question at hand: the average career length for an All-NBA player,
+# assume that each player will continue to perform at the same caliber as last season for the rest of their career,
+# and that the number of All-NBA selections for any given player at any point in their NBA career follows a 
+# Binomial distribution with parameters n = # remaining seasons and p = probability of making All-NBA team last season
+guard_data_total_2019 <- guard_data_totals[which(guard_data_totals$Season == 2019),]
+center_data_adv_2019 <- center_data_adv[which(center_data_adv$Season == 2019),]
+
+guard_2019_pred <- predict(log.guard.total.reduced,newdata = guard_data_total_2019,type = "response")
+center_2019_pred <- predict(log.center.adv.reduced,newdata = center_data_adv_2019,type = "response")
+
+# I should scale the predictions from the model because the the top 6 guards/forwards & top 3 centers 
+# should have a probability of 1, so I'll divide the predictions by the 6th highest predication
+luka_doncic_pred <- min(1, guard_2019_pred[which(guard_data_total_2019$Player=="Luka Dončić")] / 
+                           guard_2019_pred[order(guard_2019_pred,decreasing=TRUE)][6])
+kyrie_irving_pred <- min(1, guard_2019_pred[which(guard_data_total_2019$Player=="Kyrie Irving")] / 
+                            guard_2019_pred[order(guard_2019_pred,decreasing=TRUE)][6])
+steph_curry_pred <- min(1, guard_2019_pred[which(guard_data_total_2019$Player=="Stephen Curry")] / 
+                           guard_2019_pred[order(guard_2019_pred,decreasing=TRUE)][6])
+kat_pred <- min(1, center_2019_pred[which(center_data_adv_2019$Player=="Karl-Anthony Towns")] / 
+                   center_2019_pred[order(center_2019_pred,decreasing=TRUE)][3])
+
+luka_doncic_pred <- predict(log.guard.total.reduced,newdata=luka_doncic,type="response")
+kyrie_irving_pred <- predict(log.guard.total.reduced,newdata=kyrie_irving,type="response")
+steph_curry_pred <- predict(log.guard.total.reduced,newdata=steph_curry,type="response")
+kat_pred <- predict(log.center.adv.reduced,newdata = kat,type="response")
+
+all_nba_career_years <- read.csv("all_nba_awards/all_nba_career_years.csv", header = TRUE, stringsAsFactors = FALSE)
+retired_all_nba <- all_nba_career_years[which(all_nba_career_years$Retired =="Y"),]
+avg_career_length <- round(mean(retired_all_nba$Years.in.NBA, didgits=0))
+
+# years in NBA: (Doncic = 1, Kyrie = 8, Steph = 10, Kat = 4)
+luka_doncic_years <- avg_career_length - 1
+kyrie_irving_years <- avg_career_length - 8
+steph_curry_years <- avg_career_length - 10
+kat_years <- avg_career_length - 4
+
+# Total number of All-NBA selections remaining in each of player's career
+luka <- luka_doncic_years*luka_doncic_pred
+kyrie <- kyrie_irving_years*kyrie_irving_pred
+steph <- steph_curry_years*steph_curry_pred
+kat <- kat_years*kat_pred
+
 ```
 
 
 ```{r Further Considerations}
+```
+
+
+``` {r }
 ```

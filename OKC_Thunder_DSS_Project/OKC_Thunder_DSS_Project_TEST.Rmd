@@ -55,7 +55,7 @@ cross_validation_all_nba_players <- function(data,model,position) {
 
 normalize_stats <- function (data) {
   for (year in levels(as.factor(data$Season))) {
-    for (index in c(7:32)) {
+    for (index in c(8:33)) {
       data_year <- data[which(data$Season==year),]
       data[which(data$Season==year),][,index] <- data_year[,index]/max(data_year[,index])
       data[,index] <- round(data[,index],digits=6)
@@ -712,7 +712,7 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
 
 ```
 
-```{r Data Collection and Processing}
+```{r Data Collection and Processing, message=TRUE, warning=TRUE}
 # historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
 # however, only consider All-NBA selections from the 1999-2000 season and onwards
 # Karl Malone was the first drafted player from the 2000 All-NBA team so wanted to grab his entire
@@ -815,7 +815,7 @@ loadTotalsData <- function(yr_start, yr_end) {
     df[i,]$Player <- name
   }
   df <- merge(df, df.draft,by = c("Player"))
-  df$DraftYear <- as.numeric(as.character(data_player_totals$DraftYear))
+  df$DraftYear <- as.numeric(as.character(df$DraftYear))
   # reading player names from Basketball Reference csv gives format 'Chris Paul\paulch01'
   # want to clean format to just First & Last name
   df$Player <- as.character(df$Player)
@@ -838,6 +838,8 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   # remove TOT seasons (rows that consolidated totals for players who played for multiple teams in 1 season)
   df <- df[which(df$Tm != "TOT"), ]
+  df$FGperc <- ifelse(df$FTA==0,0,df$FGperc)
+  df$ThreePperc <- ifelse(df$ThreePA==0,0,df$ThreePperc)
   # remove rows with missing observations
   df <- df[complete.cases(df),]
 

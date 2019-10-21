@@ -1310,7 +1310,7 @@ luka_most <- 0
 kyrie_most <- 0
 steph_most <- 0
 kat_most <- 0
-sim_results <- data.frame(Seed=int(),Luka=int(),Kyrie=int(),Steph=int(),Kat=int())
+sim_results <- data.frame(Seed=integer(),Luka=integer(),Kyrie=integer(),Steph=integer(),Kat=integer())
 for (i in seeds) {
   set.seed(i)
   df.forecast <- simulate_all_nba(data_player_totals_filtered)
@@ -1328,25 +1328,25 @@ for (i in seeds) {
   } else if (kat>luka&kat>kyrie&kat>steph) {
     kat = kat + 1
   } else {
-    if (luka=max(luka,kyrie,steph,kat)) {
+    if (luka==max(luka,kyrie,steph,kat)) {
       luka_most = luka_most + 1
     }
-    if (kyrie=max(luka,kyrie,steph,kat)) {
+    if (kyrie==max(luka,kyrie,steph,kat)) {
       kyrie_most = kyrie_most + 1
     }
-    if (steph=max(luka,kyrie,steph,kat)) {
+    if (steph==max(luka,kyrie,steph,kat)) {
       steph_most = steph_most + 1
     }
-    if (kat=max(luka,kyrie,steph,kat)) {
+    if (kat==max(luka,kyrie,steph,kat)) {
       kat_most = kat_most + 1
     }
   }
-  rbind(sim_results,data.frame(Seed=i,Luka=luka,Kyrie=kyrie,Steph=steph,Kat=kat))
+  sim_results <- rbind(sim_results,data.frame(Seed=i,Luka=luka,Kyrie=kyrie,Steph=steph,Kat=kat))
 }
-luka_likelihood <- luka_most / 10000
-kyrie_likelihood <- kyrie_most / 10000
-steph_likelihood <- steph_most / 10000
-kat_likelihood <- kat_most / 10000
+luka_likelihood <- luka_most / length(seeds)
+kyrie_likelihood <- kyrie_most / length(seeds)
+steph_likelihood <- steph_most / length(seeds)
+kat_likelihood <- kat_most / length(seeds)
 
 luka_est <- mean(sim_results$Luka)
 kyrie_est <- mean(sim_results$Kyrie)

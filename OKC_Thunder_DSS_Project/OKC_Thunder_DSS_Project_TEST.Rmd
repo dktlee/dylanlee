@@ -1341,9 +1341,17 @@ for (i in seeds) {
       kat_most = kat_most + 1
     }
   }
-  
   rbind(sim_results,data.frame(Seed=i,Luka=luka,Kyrie=kyrie,Steph=steph,Kat=kat))
 }
+luka_likelihood <- luka_most / 10000
+kyrie_likelihood <- kyrie_most / 10000
+steph_likelihood <- steph_most / 10000
+kat_likelihood <- kat_most / 10000
+
+luka_est <- mean(sim_results$Luka)
+kyrie_est <- mean(sim_results$Kyrie)
+steph_est <- mean(sim_results$Steph)
+kat_est <- mean(sim_results$Kat)
 ```
 
 ```{r Further Considerations}

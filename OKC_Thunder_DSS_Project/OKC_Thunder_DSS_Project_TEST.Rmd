@@ -196,14 +196,14 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
       } else {
         age_adj <- (28 - player$Age) * 0.002
       }
-      # add ~4 game noise (assumption made that players will consitently play about the same amount as the season before)
+      # add ~4 game variance noise (assumption made that players will consitently play about the same amount as the season before)
       # unfortunate for players who were injured in one of the prior years because their projections will be based
       # off the time they weren't injured and could play. However, this does capture the effect of a players durability year-to-year
       # so I am fine with making this assumption
-      player_proj_gp <- max(0, round(min(82, player$GP + rnorm(1, 0, 4)), digits = 0))
-      player_proj_gs <- max(0, round(min(player_proj_gp, player$GS + rnorm(1, 0, 4)), digits = 0))
+      player_proj_gp <- max(0, round(min(82, player$GP + rnorm(1, 0, 2)), digits = 0))
+      player_proj_gs <- max(0, round(min(player_proj_gp, player$GS + rnorm(1, 0, 2)), digits = 0))
       # All-NBA players play about 35 minutes per game
-      player_proj_mp <- max(0, round(min(player_proj_gp * 48, player$MP + rnorm(1, 0, 4 * 35)), digits = 0))
+      player_proj_mp <- max(0, round(min(player_proj_gp * 48, player$MP + rnorm(1, 0, 2 * 35)), digits = 0))
       if (player$Player %in% three_years_ago_data$Player &
           player$Player %in% two_years_ago_data$Player &
           player$Player %in% last_year_data$Player) {
@@ -1050,11 +1050,7 @@ loadTotalsData <- function(yr_start, yr_end) {
 }
 ```
 
-```{r Data Collection and Processing, message=FALSE, warning=TRUE}
-# historical NBA data collected from beggining of 1985-1986 NBA season up until 2018-2019 season
-# however, only consider All-NBA selections from the 1999-2000 season and onwards
-# Karl Malone was the first drafted player from the 2000 All-NBA team so wanted to grab his entire
-# career stats, as well as all other players
+```{r Data Collection and Processing, message=FALSE, warning=FALSE}
 YEAR_START <- 1986
 YEAR_END <- 2019
 
@@ -1071,15 +1067,15 @@ head(data_player_totals[sample(nrow(data_player_totals), 10),], 10)
 ```
 Data was collected from the well known third-party Basketball-Reference.com. I chose to collect data from this source because of its comprehensive database of historical player, as well as the easy accesiblity (Basketball Reference allows me to download the data as CSV files). The data is well formatted and only minor processing is required. I collected data from the 1985-1986 NBA season up until the 2018-2019 season, including player total stats, player per game stats and a list of players who have been awarded an All-NBA selection. I only considered All-NBA selections from the 1999-2000 season and onwards, but collected data starting with the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
 
-``` {r Data Analysis: Part 1 - Data Summary}
+``` {r Data Analysis: Part 1 - Data Summary, message=FALSE, warning=FALSE}
 # look at the distribution of the stats we have
 cat("Player Totals Data:",dim(data_player_totals)[1],"rows by",dim(data_player_totals)[2],"columns\n")
 data_player_totals %>% select(Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,ThreePperc,TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,
                               FTperc,ORB,DRB,TRB,AST,STL,BLK,PTS) %>% summary()
 ```
-The summary statistics show a large range of values for any give statistic, as expected. I should normalize each statistic for each season by dividing by the season's max; this means that each statistic now lies between (0,1) and the stat leader being the max at a value of 1. I do this because I don't want any outliers that are too low or too high in a certain stat category which can hurt the model. Also, note that we have 8,263 rows and 35 columns; I will check to see if we can remove some of these data points to avoid feeding noise into the model and reduce the covariates used to model the response.
+The summary statistics show a large range of values for any give statistic, as expected. I should normalize each statistic for each season. Also, note that we have 8,263 rows and 35 columns; I will check to see if we can remove some of these data points to avoid feeding noise into the model and reduce the covariates used to model the response.
 
-``` {r Data Analysis: Part 2 - Correlation}
+``` {r Data Analysis: Part 2 - Correlation, message=FALSE, warning=FALSE}
 # to determine which stats might be correlated with winning an All-NBA selection for a given season
 corr.matrix.totals <- cor(data_player_totals[, c("TotalAllNba","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM","ThreePA","ThreePperc",
                                                  "TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA","FTperc","ORB","DRB","TRB","AST","STL",
@@ -1088,7 +1084,7 @@ corrplot(corr.matrix.totals[1, 2:27, drop = FALSE],title = "Correlation: Player 
 ```
 The correlation plots of Player Total Stats show slightly positive correlation between being selected for the All-NBA team and Games Started, Field Goals Made, Field Goals Attempted, Free Throws Made, Free Throws Attempted, Rebounds, Assists, Steals, Blocks, Turnovers, and Points: stronger correlation in the scoring stats while the other counting stats are slightly less correlated. Even though we observe positive correlations with certain covariates, correlation does not necessarily imply causation. I will continue to investigate the relationship
 
-``` {r Data Analysis: Part 3 - Distribution, message=FALSE}
+``` {r Data Analysis: Part 3 - Distribution, message=FALSE, warning=FALSE}
 # note: there might be a more efficient way to code this section, but I sacrificed ease for aesthetics since this will be generating a report
 hist.totals.Age <- ggplot(data_player_totals, aes(x=Age,fill=AllNba,color=AllNba)) + 
                         geom_histogram(position = "identity", alpha = 0.5) +
@@ -1220,56 +1216,31 @@ hist.totals.BLK
 hist.totals.TOV
 hist.totals.PF
 hist.totals.PTS
-
-# looking at the distribution of players comparing players who make the All-NBA team against those
-# who didn't, we consistently see that All-NBA players are performing above average in the 
-# counting stats - another fairly trivial conclusion
-# what's more interesting is the distribution of the shooting percentages (FG%, 3P%, 2P%, and FT%)
-# we see that All-NBA players have similar distributions as non All-NBA players and are not
-# consistently shooting more efficiently than average
-# looking at the advanced stats we see All-NBA players have a higher PER, USGperc, WS, BPM, and VORP
-# than average
 ```
-The plots are histograms counting the number of players (y-axis) who fall into a certain bucket partitioned by each stat category (x-axis), split between All-NBA players and the rest of the league. Looking at the distribution of our data, comparing All-NBA players against the rest of the league, we uncover interesting findings that will allow me to filter out data points that could potentially dilute the model's ability to showcase elite players. I don't want to flood the model with bench/ rotational players who aren't in consideration for All-NBA honours. I will use Games Played during a season as a proxy, and only consider players who play 48 games or more.
+The plots are histograms counting the number of players (y-axis) who fall into a certain bucket partitioned by each stat category (x-axis), split between All-NBA players and the rest of the league. Looking at the distribution of our data, comparing All-NBA players against the rest of the league, we uncover interesting findings that will allow me to filter out data points that could potentially dilute the model's ability to showcase elite players. I don't want to flood the model with bench/ rotational players who aren't in consideration for All-NBA honours. I will use Minutes Played during a season as a proxy, and only consider players who play 1600 minutes or more in season. I choose to use MP rather than GP as a filter because it is more restrictive, where if I filter by GP, bench/ rotational players could potentially make it through if they consistantly play throughout the season. Looking at All-NBA players, the lowest MP in a season is about 1600 minutes (the two outlier data points are players who got traded in the middle of the season and so their MP on one of the teams in low).
 
 We consitantly see that All-NBA players are performing above average in the counting stats compared to the rest of the league - a fairly trivial solution. A more interesting discovery is the distributions of the different shooting percentages (FG%, 3P%, 2P%, eFG%, and FT%). We see that All-NBA players have similar distributions compared to the rest of the league, and are not actually shooting consistantly better or more efficiently. I infer that this comes with the territory of All-NBA players having higher usage rates and taking more shots.
 
-
-``` {r Data Analysis: Part 4 - Filtering Data}
-# also notice that All-NBA players have about more than 48 Games Played, more than 23 Games Started,
-# and more than 1600 minutes played (28 minutes per game) in a given season. There is also
-# significant noise from the larger dataset including bench/rotational players that do not meet 
-# this threshold. I chose to remove these datapoints from the dataset because I want to train
-# my model based on players that have a realistic chance at winning an All-NBA selection
-# filtered datapoints based on Games Played, so considered players who have more than 48 games played
-# rather than minutes played because you may have players who play 28 minutes per game but 
-# only play 20 games, for example 
-data_player_totals_filtered <- data_player_totals[which(data_player_totals$GP>=48),c(1:34)]
+``` {r Data Analysis: Part 4 - Filtering Data, message=FALSE, warning=FALSE}
+# filter datapoints based on Minutes played Games Played
+data_player_totals_filtered <- data_player_totals[which(data_player_totals$MP>=1600),c(1:34)]
 ```
 
-```{r Data Analysis: Part 5 - Correlation of Filtered Data}
+```{r Data Analysis: Part 5 - Correlation of Filtered Data, message=FALSE, warning=FALSE}
 # lets look at the correlation between All-NBA selections and stats for the filtered data set
 corr.matrix.totals_filtered <- cor(data_player_totals_filtered[,c("TotalAllNba","Age","GP","GS","MP","FGM","FGA","FGperc","ThreePM",
                                                 "ThreePA","ThreePperc","TwoPM","TwoPA","TwoPperc","eFGperc","FTM","FTA",
                                                 "FTperc","ORB","DRB","TRB","AST","STL","BLK","TOV","PF","PTS")])
 corrplot(corr.matrix.totals_filtered[1,2:27,drop=FALSE], title="Correlation: Player Totals", mar=c(0,0,1,0))
-# the correlation plots show slightly stronger positive correlation between for different stats for the 
-# Total Stats, Per Game Stats, and Advanced Stat filtered datasets - better than the larger data set
-# looking at the Advanced Player stats is a bit more interesting, we see that player effeciency rating (PER), usage
 ```
+The correlation plots of show slightly stronger correlation between the different stats and being selected for the All-NBA team, better than the larger data set. What's interesting is that Turnovers has a high correlation with making an All-NBA team, but a more realistic explanation is that more Turnovers is caused by a higher usage rate, and that All-NBA players have higher usage rates.
 
 ```{r}
 #####################################################
-# notes: continue to model the predict a single seasons All-NBA winnners based on their stats
-# extrapolate the estimates for the players based on their current age/year in the NBA by the estimated
-# number of remaining seasons
-# support this with the evidence from the career totals that more stats = more All-NBA selections
-# use Binomial Distribution to estimate
-# incorporate advanced stats into the same dataframe as counting
-# use par(mfrow=c(2,2)) to graph plots in grid: https://www.statmethods.net/advgraphs/layout.html
+# notes: use par(mfrow=c(2,2)) to graph plots in grid: https://www.statmethods.net/advgraphs/layout.html
 ```
 
-``` {r Data Analysis: Part 6- Normalize Data}
+``` {r Data Analysis: Part 6- Normalize Data, message=FALSE, warning=FALSE}
 # after looking at the data summaries and distribution, I normalized each statistic in each season
 # by dividing it by the seasons max. This means each statistic now lies between (0,1), and the stat
 # leader will now have a value of 1. This is to avoid outliers who's stats would hurt the model
@@ -1277,167 +1248,156 @@ corrplot(corr.matrix.totals_filtered[1,2:27,drop=FALSE], title="Correlation: Pla
 # Player Stat Total
 data_player_totals_normalized <- normalize_stats(data_player_totals_filtered)
 ```
+After analyzing the data summaries and distributions, I normalized each statistic by dividing by the season's max; this means that each statistic now lies between (0,1) and the stat leader being the max at a value of 1. I do this because I don't want any outliers that are too low or too high in a certain stat category which can hurt the model.
 
 ```{r Modelling, message=FALSE, warning=FALSE}
-# since the All-NBA team consists for 6 guards, 6 forwards, and 3 centers, I decided to model each position
-# seperately because the counting stats between guards, forwards, and centers differ quite significantly
-# I'll use the 2000-2018 data to train the model and measure the accuracy against the predictions 
-# for the 2019 season
-
-##################################################################
-################   Total Stats Model   ################
-##################################################################
-guard_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('PG','SG')),]
-forward_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('SF','PF')),]
-center_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('C')),]
+guard_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('PG', 'SG')), ]
+forward_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('SF', 'PF')), ]
+center_data_totals <- data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% c('C')), ]
 
 ############### linear model ###############
-# guard
-lm.guard.total.full <- lm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                          data = guard_data_totals[which(guard_data_totals$Season != 2019),])
+###############    guard     ###############
+lm.guard.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
+                                        eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS,
+                          data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
 # lm.guard.total.reduced <- step(lm.guard.total.full, trace = 0)
 # summary(lm.guard.total.reduced)
-lm.guard.total.reduced <- lm(TotalAllNba ~ GP+GS+MP+FGM+FGperc+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                           eFGperc+FTM+FTperc+ORB+TRB+AST+STL+BLK+TOV+PF,
-                             data = guard_data_totals[which(guard_data_totals$Season != 2019),])
-lm.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], lm.guard.total.reduced)[1:6,]
-lm.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], lm.guard.total.reduced)[1:6,]
+lm.guard.total.reduced <- lm(TotalAllNba ~ GP + GS + MP + FGM + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + eFGperc + FTM + 
+                                           FTperc + DRB + AST + STL + BLK + TOV + PF, 
+                             data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
+lm.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ], lm.guard.total.reduced)[1:6, ]
+lm.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ], lm.guard.total.reduced)[1:6, ]
 
-# forward
-lm.forward.total.full <- lm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                            data = forward_data_totals[which(forward_data_totals$Season != 2019),])
+############### linear model ###############
+###############   forward    ###############
+lm.forward.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
+                                          eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS, 
+                            data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
 # lm.forward.total.reduced <- step(lm.forward.total.full, trace = 0)
 # summary(lm.forward.total.reduced)
-lm.forward.total.reduced <- lm(TotalAllNba ~ GP+MP+FGperc+ThreePperc+TwoPM+TwoPA+
-                                             eFGperc+FTM+FTperc+ORB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                               data = forward_data_totals[which(forward_data_totals$Season != 2019),])
-lm.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], lm.forward.total.reduced)[1:6,]
-lm.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], lm.forward.total.reduced)[1:6,]
+lm.forward.total.reduced <- lm(TotalAllNba ~ GP + MP + FGperc + ThreePperc + TwoPM + TwoPA + TwoPperc + eFGperc + FTM + FTperc + ORB + DRB +
+                                             AST + STL + BLK + TOV + PTS, 
+                               data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
+lm.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ], 
+                                                lm.forward.total.reduced)[1:6, ]
+lm.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ], 
+                                               lm.forward.total.reduced)[1:6, ]
 
-# center
-lm.center.total.full <- lm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                           data = center_data_totals[which(center_data_totals$Season != 2019),])
+############### linear model ###############
+###############    center    ###############
+lm.center.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
+                                         eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS, 
+                           data = center_data_totals[which(center_data_totals$Season != 2019), ])
 # lm.center.total.reduced <- step(lm.center.total.full, trace = 0)
 # summary(lm.center.total.reduced)
-lm.center.total.reduced <- lm(TotalAllNba ~ MP+Age+FGA+FGperc+ThreePM+ThreePA+TwoPM+TwoPA+TwoPperc+
-                                            FTM+FTA+ORB+TRB+AST+STL+BLK+TOV,
-                              data = center_data_totals[which(center_data_totals$Season != 2019),])
-lm.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], lm.center.total.reduced)[1:3,]
-lm.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], lm.center.total.reduced)[1:3,]
+lm.center.total.reduced <- lm(TotalAllNba ~ GS + Age + TwoPM + TwoPA + FTM + FTA + FTperc + ORB + TRB + AST + BLK + PF,
+                              data = center_data_totals[which(center_data_totals$Season != 2019), ])
+lm.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ], lm.center.total.reduced)[1:3, ]
+lm.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ], lm.center.total.reduced)[1:3, ]
 
 ############### logistic model ###############
-# guard
-log.guard.total.full <- glm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                            data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
+###############     guard      ###############
+log.guard.total.full <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
+                                          eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS,
+                            data = guard_data_totals[which(guard_data_totals$Season != 2019), ], family = binomial(link = "logit"))
 # log.guard.total.reduced <- step(log.guard.total.full, trace = 0)
 # summary(log.guard.total.reduced)
-log.guard.total.reduced <- glm(TotalAllNba ~ GP+MP+FGM+FGA+ThreePM+ThreePA+TwoPperc+eFGperc++FTM+TRB+AST+STL+TOV+PF+PTS,
-                               data = guard_data_totals[which(guard_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], log.guard.total.reduced)[1:6,]
-log.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019),], log.guard.total.reduced)[1:6,]
+log.guard.total.reduced <- glm(TotalAllNba ~ MP + FGM + FGA + TwoPA + eFGperc + FTM +DRB + AST + STL + TOV + PF + PTS,
+                               data = guard_data_totals[which(guard_data_totals$Season != 2019), ],family = binomial(link = "logit"))
+log.guard.total.full.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ], log.guard.total.reduced)[1:6, ]
+log.guard.total.red.pred <- predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ], log.guard.total.reduced)[1:6, ]
 
-# forward
-log.forward.total.full <- glm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                            data = forward_data_totals[which(forward_data_totals$Season != 2019),], family = binomial(link="logit"))
+############### logistic model ###############
+###############     forward    ###############
+log.forward.total.full <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc + ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc +
+                                            eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS, 
+                              data = forward_data_totals[which(forward_data_totals$Season != 2019), ],family = binomial(link = "logit"))
 # log.forward.total.reduced <- step(log.forward.total.full, trace = 0)
 # summary(log.forward.total.reduced)
-log.forward.total.reduced <- glm(TotalAllNba ~ GP+GS+MP+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPperc+eFGperc+FTM+DRB+AST+STL+BLK+TOV+PTS,
-                                 data = forward_data_totals[which(forward_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], log.forward.total.reduced)[1:6,]
-log.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019),], log.forward.total.reduced)[1:6,]
+log.forward.total.reduced <- glm(TotalAllNba ~ MP + Age + FGperc + ThreePperc + TwoPM +eFGperc + FTM + DRB + TRB + AST + STL + 
+                                               BLK + TOV + PTS,
+                                 data = forward_data_totals[which(forward_data_totals$Season != 2019), ], family = binomial(link = "logit"))
+log.forward.total.full.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ],
+                                                 log.forward.total.reduced)[1:6, ]
+log.forward.total.red.pred <- predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ], 
+                                                log.forward.total.reduced)[1:6, ]
 
-# center
-log.center.total.full <- glm(TotalAllNba ~ GP+GS+MP+Age+FGM+FGA+FGperc+ThreePM+ThreePA+ThreePperc+TwoPM+TwoPA+TwoPperc+
-                                        eFGperc+FTM+FTA+FTperc+ORB+DRB+TRB+AST+STL+BLK+TOV+PF+PTS,
-                            data = center_data_totals[which(center_data_totals$Season != 2019),], family = binomial(link="logit"))
+############### logistic model ###############
+###############     center     ###############
+log.center.total.full <- glm(TotalAllNba ~ GP + GS + Age + FGM + FGA + FGperc + ThreePM + TwoPM + TwoPA + TwoPperc +
+                                           eFGperc + FTM + ORB + DRB + AST + STL + BLK + PF,
+                             data = center_data_totals[which(center_data_totals$Season != 2019), ],family = binomial(link = "logit"))
 # log.center.total.reduced <- step(log.center.total.full, trace = 0)
 # summary(log.center.total.reduced)
-log.center.total.reduced <- glm(TotalAllNba ~ GP+Age+FGA+ThreePA+TwoPM+TwoPA+eFGperc+FTA+FTperc+TRB+AST+BLK+TOV,
-                            data = center_data_totals[which(center_data_totals$Season != 2019),], family = binomial(link="logit"))
-log.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], log.center.total.reduced)[1:3,]
-log.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019),], log.center.total.reduced)[1:3,]
+log.center.total.reduced <- glm(TotalAllNba ~ GP + Age + FGA + ThreePA + TwoPM + TwoPA + eFGperc + FTA + FTperc + TRB + AST + BLK + TOV,
+                                data = center_data_totals[which(center_data_totals$Season != 2019), ],family = binomial(link = "logit"))
+log.center.total.full.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ], log.center.total.reduced)[1:3, ]
+log.center.total.red.pred <- predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ], log.center.total.reduced)[1:3, ]
 ```
+Since the All-NBA team consists for 6 guards, 6 forwards, and 3 centers, I decided to model each position seperately because the counting stats between guards, forwards, and centers differ quite significantly. I'll use the 2000-2018 data to train the model and measure the accuracy against the predictions for the 2019 season.
 
-```{r Modeling Accuracy}
+```{r Modeling Accuracy, message=FALSE, warning=FALSE}
 # all nba team
-lm.total.all_nba_team.full <- rbind(lm.guard.total.full.pred,lm.forward.total.full.pred,lm.center.total.full.pred)
-lm.total.all_nba_team.red <- rbind(lm.guard.total.red.pred,lm.forward.total.red.pred,lm.center.total.red.pred)
+lm.total.all_nba_team.full <- rbind(lm.guard.total.full.pred, lm.forward.total.full.pred, lm.center.total.full.pred)
+lm.total.all_nba_team.red <- rbind(lm.guard.total.red.pred, lm.forward.total.red.pred, lm.center.total.red.pred)
 # linear accuracy
 lm.total.full.acc <- calcAccuracy(lm.total.all_nba_team.full)
 lm.total.red.acc <- calcAccuracy(lm.total.all_nba_team.red)
+
 # all nba team
-log.total.all_nba_team.full <- rbind(log.guard.total.full.pred,log.forward.total.full.pred,log.center.total.full.pred)
-log.total.all_nba_team.red <- rbind(log.guard.total.red.pred,log.forward.total.red.pred,log.center.total.red.pred)
+log.total.all_nba_team.full <- rbind(log.guard.total.full.pred, log.forward.total.full.pred, log.center.total.full.pred)
+log.total.all_nba_team.red <- rbind(log.guard.total.red.pred, log.forward.total.red.pred, log.center.total.red.pred)
 # logistic accuracy
 log.total.full.acc <- calcAccuracy(log.total.all_nba_team.full)
 log.total.red.acc <- calcAccuracy(log.total.all_nba_team.red)
 
-full_vs_red_acc <- data.frame(Data=c("Full Linear","Reduced Linear","Full Logistic","Reduced Logistic"),
-                              Linear=c(lm.total.full.acc,lm.total.red.acc),
-                              Logistic=c(log.total.full.acc,log.total.red.acc))
-par(mfrow=c(1,1))
+full_vs_red_acc <- data.frame(Data = c("Full Model", "Reduced Model", "Full Model", "Reduced Model"),
+                              Linear = c(lm.total.full.acc, lm.total.red.acc),
+                              Logistic = c(log.total.full.acc, log.total.red.acc))
+par(mfrow = c(1, 1))
 colours <- viridis(2)
 full_vs_red_plot <- barplot(c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),
-                            names.arg = full_vs_red_acc$Data,
-                            ylim=c(0,1), las=2, col=c(rep(colours[1],2),rep(colours[2],2)),
-                            ylab="Accuracy",main="Full vs Reduced Model Accuracy - 2019 Predictions", cex.names = 0.6)
-text(x=full_vs_red_plot,
-     y=c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),
-     label=round(c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),
-               digits=3),
-     pos=3, cex=0.7)
-legend("bottomright",c("Total Stats"),
-      fill = colours, cex=0.8)
-# see that the reduced models with less features perform the same as the full models 
-# will use the reduced models going forward with cross validation to see which model performs the best
+                            names.arg = full_vs_red_acc$Data,ylim = c(0, 1),las = 2,col = c(rep(colours[1], 2), rep(colours[2], 2)),
+                            ylab = "Accuracy", main = "Player Total Stats - 2019 Predictions", cex.names = 0.6)
+text(x = full_vs_red_plot,y = c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),
+     label = round(c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear[2],full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),digits = 3),
+     pos = 3,cex = 0.7)
+legend("bottomright", c("Linear Model", "Logistic Model"), fill = colours, cex = 0.8)
 ```
+I predicted the 2019 All-NBA team by first predicting the All-NBA guards, forwards, and centers seperately, and then combining the results to form the All-NBA team. The Logistic Model with Player Total Stats Data correctly predicted 93.3% of the 2019 All-NBA team, or 14/15 players. We see that the reduced models with less covariates perform the same as the full models so I will use the reduced models going forward. With the simpler models, I will perform cross validation to see which model performs the best. With the 2000-2019 data, I will test the model accuracy by using all the years, except for 1, to train the model and predict All-NBA players for the 1 season left out of the training data set, and do so for each and every year.
 
 ```{r Cross Validation, message=FALSE, warning=FALSE}
-lm.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,lm.guard.total.reduced,"guard"))
-lm.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals,lm.forward.total.reduced,"forward"))
-lm.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,lm.center.total.reduced,"center"))
-log.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,log.guard.total.reduced,"guard"))
-log.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals,log.forward.total.reduced,"forward"))
-log.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,log.center.total.reduced,"center"))
+lm.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals, lm.guard.total.reduced, "guard"))
+lm.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals, lm.forward.total.reduced, "forward"))
+lm.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals, lm.center.total.reduced, "center"))
+log.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals, log.guard.total.reduced, "guard"))
+log.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals, log.forward.total.reduced, "forward"))
+log.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals, log.center.total.reduced, "center"))
 
-linear_vs_log <- data.frame(Linear=c(lm.guard.total.accuracies,lm.forward.total.accuracies,lm.center.total.accuracies),
-                              Logistic=c(log.guard.total.accuracies,log.forward.total.accuracies,log.center.total.accuracies))
-par(mfrow=c(1,1))
+linear_vs_log <- data.frame(Linear = c(lm.guard.total.accuracies,lm.forward.total.accuracies,lm.center.total.accuracies),
+                            Logistic = c(log.guard.total.accuracies,log.forward.total.accuracies,log.center.total.accuracies))
+par(mfrow = c(1, 1))
 colours <- viridis(3)
-full_vs_red_plot <- barplot(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],
-                              linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
+full_vs_red_plot <- barplot(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
                               linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),
-                            names.arg = rep(c("LM - Total","Log - Total"),3),
-                            ylim=c(0,1), las=2, col=c(rep(colours[1],2),rep(colours[2],2),rep(colours[3],2)),
-                            ylab="Accuracy",main="Linear vs Logistic Model Accuracy - LOOCV", cex.names = 0.6)
-text(x=full_vs_red_plot,
-     y=c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],
-         linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
-         linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),
-     label=round(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],
-                   linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
-                   linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),
-               digits=3),
-     pos=3, cex=0.7)
-legend("bottomright",c("Guards","Forwards","Centers"),
-      fill = colours, cex=0.8)
-# see that that the models perform differently depending on the position
-# for guards, the Logistic model with Total Stats data and the Logistic model with Merged Stats data perform the best,
-# accurately predicting the All-NBA guards 85% of the time, on average, from 2000-2019. I'll choose to use the Logistic
-# model with total stats to stick with because its the simpler model but still performing the best
-# for forwards, the Logistic model with Pergame Stats data and the Logistic model with Advanced Stats perform the best,
-# accuratelty predicting the All-NBA forwards 82.5% of the time, on average, from 2000-2019. I'll choose to use the Logistic
-# model with advanced stats to stick with because its the simpler model but still performing the best
-# for centers, the Logistic model with Total Stats data and the Logistic model with Advanced Stats perform the best,
-# accurately predicting the All-NBA centers 81.7% of the time, on average, from 2000-2019. I'll choose to use the Logistic
-# model with advanced stats to stick with because its the simpler model but still performing the best
+                            names.arg = rep(c("LM - Total", "Log - Total"), 3),ylim = c(0, 1),las = 2,
+                            col = c(rep(colours[1], 2), rep(colours[2], 2), rep(colours[3], 2)),ylab = "Accuracy",
+                            main = "Linear vs Logistic Model Accuracy - LOOCV",cex.names = 0.6)
+text(x = full_vs_red_plot,y = c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
+                                linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),
+     label = round(c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1],linear_vs_log$Linear[2],linear_vs_log$Logistic[2],
+                     linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),digits = 3),
+     pos = 3,cex = 0.7)
+legend("bottomright", c("Guards", "Forwards", "Centers"), fill = colours, cex = 0.8)
 ```
+I predicted the All-NBA guards, forwards, and centers seperately for each year, and then took the average of the model's accuracy respectively. The Logisitc models out performed the Linear models for each position, with the Guard's model accurately predicting the All-NBA guards 79.2% of the time, the Forwards's model accurately predicting the All-NBA forwards 76.7% of the time, and the Center's model accurately predicting the All-NBA centers 75% of the time, for each season between 2000-2019. I'll continue with the Logistic model's for each position going forward.
 
+
+To get the predictions for Luka Doncic, Kyrie Irving, and Stephen Curry I will use the Reduced Logistic Model for guards and the Reduced Logistic Model for centers for Karl-Anthony Towns. First, I have to project the player's stats for the rest of their career, and doing so I make a couple assumptions: 
+1) I will assume that players don't have a career longer than 17 years, which is based on the careers of players like Kobe, Shaq, Lebron, and Tim Duncan
+2) I project a players GP, GS, and MP based on their prior seasons GP, GS, and MP, but add normalized noise with a variance of 4 games
+3) Stat projections are based on a weighted average of the players past 3 seasons played, the minutes they played during each season, and scaled by the league average in each category per minute. Then the projected stat per minute is multipled by the projected MP by that player to get their total
+The algorithm is based off a similar method used by Basketball-Reference.com
 ```{r Prediction, message=FALSE, warning=FALSE}
 # get the predictions for Luka Doncic, Karl Anthony-Towns, Kyrie Irving, Stephen Curry and make the predictions
 # I make quite a few assumptions to answer the question at hand: the average career length for an All-NBA player,
@@ -1446,7 +1406,7 @@ legend("bottomright",c("Guards","Forwards","Centers"),
 # Binomial distribution with parameters n = # remaining seasons and p = probability of making All-NBA team last season
 
 # this simulates the stats for NBA players over the next 15 seasons
-set.seed(24)
+set.seed(1)
 df.forecast <- simulate_all_nba(data_player_totals_filtered)
 
 # Total number of All-NBA selections remaining in each of player's career
@@ -1454,10 +1414,15 @@ luka <- dim(df.forecast[which(df.forecast$Player=="Luka Dončić"&df.forecast$To
 kyrie <- dim(df.forecast[which(df.forecast$Player=="Kyrie Irving"&df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 steph <- dim(df.forecast[which(df.forecast$Player=="Stephen Curry"&df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 kat <- dim(df.forecast[which(df.forecast$Player=="Karl-Anthony Towns"&df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
+
+print(paste("I predict that Luka Doncic will receive ",luka," All-NBA selections for the remainder of his carrer, Kyrie Irving ",kyrie,
+            ", Steph Curry ",steph,", and Karl-Anthony Towns ",kat,"."))
 ```
 
+
 ```{r Simulation, message=FALSE, warning=FALSE}
-seeds <- sample(1:10000,10000)
+seeds <- sample(1:10,10)
+# seeds <- c(1,2)
 luka_most <- 0
 kyrie_most <- 0
 steph_most <- 0
@@ -1476,9 +1441,9 @@ for (i in seeds) {
   } else if (kyrie>luka&kyrie>steph&kyrie>kat) {
     kyrie_most = kyrie_most + 1
   } else if (steph>luka&steph>kyrie&steph>kat) {
-    steph = steph + 1
+    steph_most = steph_most + 1
   } else if (kat>luka&kat>kyrie&kat>steph) {
-    kat = kat + 1
+    kat_most = kat_most + 1
   } else {
     if (luka==max(luka,kyrie,steph,kat)) {
       luka_most = luka_most + 1
@@ -1504,6 +1469,13 @@ luka_est <- mean(sim_results$Luka)
 kyrie_est <- mean(sim_results$Kyrie)
 steph_est <- mean(sim_results$Steph)
 kat_est <- mean(sim_results$Kat)
+
+print(paste("The likelihood that Doncic will have the greatest number of All-NBA selections remaining among the group is: ",luka_likelihood,", Kyrie Irving: ",kyrie_likelihood,
+            ", Steph Curry: ",steph_likelihood,", Karl-Anthony Towns: ",kat_likelihood, sep = ""))
+print(paste("The average number of All-NBA selections for Luka Doncic out of ",length(seeds)," simulation(s) is ",luka_est,
+            ", Kyrie Irving: ",kyrie_est,", Steph Curry: ",steph_est,", and Karl-Anthony Towns: ",kat_est,sep = ""))
+# The likelihood that Doncic will have the greatest number of All-NBA selections remaining among the group is: 0.5, Kyrie Irving: 0, Steph Curry: 0, Karl-Anthony Towns: 0.6
+# The average number of All-NBA selections for Luka Doncic out of 10 simulation(s) is 7.7, Kyrie Irving: 1.5, Steph Curry: 0.3, and Karl-Anthony Towns: 8.1"
 ```
 
 ```{r Further Considerations}

@@ -1,13 +1,3 @@
----
-title: "OKC_Thunder_DSS_Project"
-output: pdf_document
----
-Analyst Intern, Data Science & Solutions Project | 
-Dylan Lee | 
-dktlee@uwaterloo.ca | 
-(416) 312-7550 
-
-``` {r Libraries, warning = FALSE, message = FALSE}
 # load required packages
 library(reshape2)
 library(dplyr)
@@ -17,9 +7,7 @@ library(ggplot2)
 library(gridExtra)
 library(viridis)
 library(tidyverse)
-```
 
-```{r Helper Functions}
 # helper functions created to assist with resuability
 
 ##################################################################
@@ -107,44 +95,44 @@ simulate_all_nba <- function(data) {
   
   for (year in 2020:2034) {
     train_guard_set <- df.forecast.normalize[which(df.forecast.normalize$Season < year
-                                   & df.forecast.normalize$Pos %in% c("PG", "SG")), ]
+                                                   & df.forecast.normalize$Pos %in% c("PG", "SG")), ]
     train_center_set <- df.forecast.normalize[which(df.forecast.normalize$Season < year
-                                   & df.forecast.normalize$Pos %in% c("C")), ]
+                                                    & df.forecast.normalize$Pos %in% c("C")), ]
     full_model_guard <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc +
-                            ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc +
-                            eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + 
-                            STL + BLK + TOV + PF + PTS,
+                              ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc +
+                              eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + 
+                              STL + BLK + TOV + PF + PTS,
                             data = train_guard_set,family = binomial(link = "logit"))
     red_model_guard <- step(full_model_guard, trace = 0)
     full_model_center <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc +
-                             ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + 
-                             TwoPperc + eFGperc + FTM + FTA + FTperc + ORB + DRB + 
-                            TRB + AST + STL + BLK + TOV + PF + PTS,
+                               ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + 
+                               TwoPperc + eFGperc + FTM + FTA + FTperc + ORB + DRB + 
+                               TRB + AST + STL + BLK + TOV + PF + PTS,
                              data = train_center_set,family = binomial(link = "logit"))
     red_model_center <- step(full_model_center, trace = 0)
     test_guard_set <- df.forecast.normalize[which(df.forecast.normalize$Season == year
-                                    & df.forecast.normalize$Pos %in% c("PG", "SG")), ]
+                                                  & df.forecast.normalize$Pos %in% c("PG", "SG")), ]
     test_center_set <- df.forecast.normalize[which(df.forecast.normalize$Season == year
-                                    & df.forecast.normalize$Pos %in% c("C")), ]
+                                                   & df.forecast.normalize$Pos %in% c("C")), ]
     pred_guard <- predict(red_model_guard, newdata = test_guard_set, type = "response")
     pred_center <- predict(red_model_center, newdata = test_center_set, type = "response")
     
     if (length(pred_guard) > 0) {
       all_nba_guard <- test_guard_set[which(pred_guard >= 
-        pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, length(pred_guard))]), ]
+                                              pred_guard[order(pred_guard, decreasing = TRUE)][1:min(6, length(pred_guard))]), ]
       for (index in 1:dim(all_nba_guard)[1]) {
         player <- all_nba_guard[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player &
-                              df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
+                                      df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
       }
     }
     if (length(pred_center) > 0) {
       all_nba_center <- test_center_set[which(pred_center >=
-        pred_center[order(pred_center, decreasing=TRUE)][1:min(3,length(pred_center))]),]
+                                                pred_center[order(pred_center, decreasing=TRUE)][1:min(3,length(pred_center))]),]
       for (index in 1:dim(all_nba_center)[1]) {
         player <- all_nba_center[index, ]
         df.forecast.normalize[which(df.forecast.normalize$Player == player$Player &
-                              df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
+                                      df.forecast.normalize$Season == year), ]$TotalAllNba <- 1
       }
     }
   }
@@ -174,9 +162,9 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
   threepm_three_years_ago <- sum(three_years_ago_data$ThreePM)
   threep_miss_last_year <- sum(last_year_data$ThreePA) - sum(last_year_data$ThreePM)
   threep_miss_two_years_ago <- sum(two_years_ago_data$ThreePA) -
-                               sum(two_years_ago_data$ThreePM)
+    sum(two_years_ago_data$ThreePM)
   threep_miss_three_years_ago <- sum(three_years_ago_data$ThreePA) -
-                                 sum(three_years_ago_data$ThreePM)
+    sum(three_years_ago_data$ThreePM)
   ftm_last_year <- sum(last_year_data$FTM)
   ftm_two_years_ago <- sum(two_years_ago_data$FTM)
   ftm_three_years_ago <- sum(three_years_ago_data$FTM)
@@ -226,12 +214,12 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                      digits = 0))
       # All-NBA players play about 35 minutes per game
       player_proj_mp <- max(0, round(min(player_proj_gp * 48, player$MP + 
-                                         rnorm(1, 0, 2 * 35)), digits = 0))
+                                           rnorm(1, 0, 2 * 35)), digits = 0))
       if (player$Player %in% three_years_ago_data$Player &
           player$Player %in% two_years_ago_data$Player &
           player$Player %in% last_year_data$Player) {
         player_mp_last_year <- last_year_data[which(last_year_data$Player ==
-                                                    player$Player), ]$MP
+                                                      player$Player), ]$MP
         player_mp_two_years_ago <- 
           two_years_ago_data[which(two_years_ago_data$Player == player$Player), ]$MP
         player_mp_three_years_ago <-
@@ -241,195 +229,195 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
           3 * player_mp_two_years_ago + 1 * player_mp_three_years_ago
         weighted_fgm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FGM + 
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$FGM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FGM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$FGM +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FGM
         weighted_fg_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM) +
-                            3 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM) +
-                            1 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FGM) +
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FGA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FGM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FGA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FGM)
         weighted_threepm <- 6 * last_year_data[which(last_year_data$Player ==
                                                        player$Player), ]$ThreePM +
-                            3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                           player$Player), ]$ThreePM +
-                            1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                             player$Player), ]$ThreePM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$ThreePM +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ThreePM
         weighted_threep_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM) +
-                                3 * (last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM) +
-                                1 * (last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM) +
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$ThreePA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$ThreePM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$ThreePA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$ThreePM)
         weighted_ftm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FTM +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$FTM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FTM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$FTM +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FTM
         weighted_ft_miss <- 6 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM) +
-                            3 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
                                    last_year_data[which(last_year_data$Player ==
                                                           player$Player), ]$FTM) +
-                            1 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTA -
-                                   last_year_data[which(last_year_data$Player ==
-                                                          player$Player), ]$FTM)
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FTA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FTM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FTA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FTM)
         weighted_orb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$ORB +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$ORB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$ORB
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$ORB +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ORB
         weighted_drb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$DRB +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$DRB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$DRB
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$DRB +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$DRB
         weighted_ast <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$AST +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$AST +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$AST
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$AST +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$AST
         weighted_stl <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$STL +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$STL +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$STL
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$STL +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$STL
         weighted_blk <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$BLK +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$BLK +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$BLK
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$BLK +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$BLK
         weighted_tov <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$TOV +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$TOV +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$TOV
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$TOV +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$TOV
         weighted_pf <- 6 * last_year_data[which(last_year_data$Player ==
                                                   player$Player), ]$PF +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$PF +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$PF
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$PF +
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (6 * player_mp_last_year * (fgm_last_year /
                                                                         mp_last_year) +
-                                           3 * player_mp_two_years_ago * 
+                                             3 * player_mp_two_years_ago * 
                                              (fgm_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago * 
-                                             (fgm_three_years_ago / mp_three_years_ago))
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago * 
+                                             (fgm_three_years_ago / mp_three_years_ago))/
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (6 * player_mp_last_year *
                                                  (fg_miss_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                            (fg_miss_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago * 
-                                              (fg_miss_three_years_ago /
-                                                 mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (fg_miss_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago * 
+                                                 (fg_miss_three_years_ago /
+                                                    mp_three_years_ago)) /
+          weighted_minutes_played 
         league_avg_weighted_threepm <- 1000 * (6 * player_mp_last_year *
                                                  (threepm_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                            (threepm_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago *
-                                              (threepm_three_years_ago /
-                                                 mp_three_years_ago))
-                                          / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (threepm_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago *
+                                                 (threepm_three_years_ago /
+                                                    mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (6 * player_mp_last_year *
-                                                (threep_miss_last_year / mp_last_year) +
-                                                   3 * player_mp_two_years_ago *
-                                        (threep_miss_two_years_ago / mp_two_years_ago) +
-                                                   1 * player_mp_three_years_ago *
-                                        (threep_miss_three_years_ago /
-                                           mp_three_years_ago)) 
-                                              / weighted_minutes_played
+                                                     (threep_miss_last_year / mp_last_year) +
+                                                     3 * player_mp_two_years_ago *
+                                                     (threep_miss_two_years_ago / mp_two_years_ago) +
+                                                     1 * player_mp_three_years_ago *
+                                                     (threep_miss_three_years_ago /
+                                                        mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (6 * player_mp_last_year * 
                                              (ftm_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (ftm_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (ftm_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ftm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (6 * player_mp_last_year *
                                                  (ft_miss_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                      (ft_miss_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago *
-                                      (ft_miss_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (ft_miss_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago *
+                                                 (ft_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (6 * player_mp_last_year * 
                                              (orb_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (orb_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                        (orb_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (orb_three_years_ago / mp_three_years_ago)) / 
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (6 * player_mp_last_year * 
                                              (drb_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (drb_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                          (drb_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (drb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (6 * player_mp_last_year * 
                                              (ast_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (ast_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (ast_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ast_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (6 * player_mp_last_year *
                                              (stl_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (stl_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                            (stl_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (stl_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (6 * player_mp_last_year * 
                                              (blk_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (blk_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                            (blk_three_years_ago / mp_three_years_ago))
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (blk_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (6 * player_mp_last_year * 
                                              (tov_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
+                                             3 * player_mp_two_years_ago *
                                              (tov_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                          (tov_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (tov_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (6 * player_mp_last_year *
                                             (pf_last_year / mp_last_year) +
-                                          3 * player_mp_two_years_ago * 
+                                            3 * player_mp_two_years_ago * 
                                             (pf_two_years_ago / mp_two_years_ago) +
-                                          1 * player_mp_three_years_ago *
-                                          (pf_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                            1 * player_mp_three_years_ago *
+                                            (pf_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
                                    (weighted_minutes_played +1000) * player_proj_mp *
                                    (1 + age_adj),digits = 0)
@@ -440,7 +428,7 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                        (weighted_minutes_played + 1000) * 
                                        player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
-                                          league_avg_weighted_threep_miss) /
+                                            league_avg_weighted_threep_miss) /
                                            (weighted_minutes_played + 1000) * 
                                            player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
@@ -473,7 +461,7 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                   (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,round(player_proj_fgm /
-                                                      player_proj_fga, digits = 3))
+                                                                    player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
                                          round(player_proj_threepm / 
@@ -487,10 +475,10 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                        round(player_proj_twopm / 
                                                player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-                                      round((player_proj_fgm + 0.5 * player_proj_threepm)
-                                            / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) /
+                                              player_proj_fga,digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% two_years_ago_data$Player &
                  player$Player %in% last_year_data$Player &
                  !(player$Player %in% three_years_ago_data$Player)) {
@@ -502,181 +490,181 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
         weighted_minutes_played <- 6 * player_mp_last_year + 3 * player_mp_two_years_ago
         weighted_fgm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FGM +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$FGM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$FGM
         weighted_fg_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM) +
-                            3 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGA -
                                    last_year_data[which(last_year_data$Player ==
-                                                          player$Player), ]$FGM)
+                                                          player$Player), ]$FGM) +
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FGA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FGM)
         weighted_threepm <- 6 * last_year_data[which(last_year_data$Player ==
                                                        player$Player), ]$ThreePM +
-                            3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                           player$Player), ]$ThreePM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$ThreePM
         weighted_threep_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM) +
-                                3 * (last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM) +
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$ThreePA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$ThreePM)
         weighted_ftm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FTM +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$FTM
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$FTM
         weighted_ft_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM) +
-                            3 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM) +
+          3 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FTA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FTM)
         weighted_orb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$ORB +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$ORB
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$ORB
         weighted_drb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$DRB +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$DRB
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$DRB
         weighted_ast <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$AST +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$AST
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$AST
         weighted_stl <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$STL +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$STL
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$STL
         weighted_blk <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$BLK +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$BLK
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$BLK
         weighted_tov <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$TOV +
-                        3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                       player$Player), ]$TOV
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$TOV
         weighted_pf <- 6 * last_year_data[which(last_year_data$Player == 
                                                   player$Player), ]$PF +
-                       3 * two_years_ago_data[which(two_years_ago_data$Player ==
-                                                      player$Player), ]$PF
+          3 * two_years_ago_data[which(two_years_ago_data$Player ==
+                                         player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (6 * player_mp_last_year * (fgm_last_year /
                                                                         mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (fgm_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (fgm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (6 * player_mp_last_year *
                                                  (fg_miss_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                            (fg_miss_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (fg_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (6 * player_mp_last_year *
                                                  (threepm_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                            (threepm_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (threepm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (6 * player_mp_last_year *
-                                                (threep_miss_last_year / mp_last_year) +
-                                                   3 * player_mp_two_years_ago *
-                                       (threep_miss_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                                     (threep_miss_last_year / mp_last_year) +
+                                                     3 * player_mp_two_years_ago *
+                                                     (threep_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (6 * player_mp_last_year * 
                                              (ftm_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (ftm_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (ftm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (6 * player_mp_last_year *
                                                  (ft_miss_last_year / mp_last_year) +
-                                               3 * player_mp_two_years_ago *
-                                            (ft_miss_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                                 3 * player_mp_two_years_ago *
+                                                 (ft_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (6 * player_mp_last_year * 
                                              (orb_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (orb_two_years_ago /mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (orb_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (6 * player_mp_last_year * 
                                              (drb_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (drb_two_years_ago /mp_two_years_ago))
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (drb_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (6 * player_mp_last_year * 
                                              (ast_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (ast_two_years_ago /mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (ast_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (6 * player_mp_last_year * 
                                              (stl_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (stl_two_years_ago /mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (stl_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (6 * player_mp_last_year * 
                                              (blk_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (blk_two_years_ago /mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (blk_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (6 * player_mp_last_year * 
                                              (tov_last_year / mp_last_year) +
-                                           3 * player_mp_two_years_ago *
-                                             (tov_two_years_ago /mp_two_years_ago))
-                                      / weighted_minutes_played
+                                             3 * player_mp_two_years_ago *
+                                             (tov_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (6 * player_mp_last_year * 
                                             (pf_last_year / mp_last_year) +
-                                          3 * player_mp_two_years_ago * 
-                                            (pf_two_years_ago /mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                            3 * player_mp_two_years_ago * 
+                                            (pf_two_years_ago /mp_two_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-            (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-            (weighted_minutes_played +1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played +1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-            (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss + 
                                             league_avg_weighted_threep_miss) /
                                            (weighted_minutes_played + 1000) * 
-                                         player_proj_mp * (1 - age_adj),digits = 0)
+                                           player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,round(player_proj_fgm /
-                                          player_proj_fga, digits = 3))
+                                                                    player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                    round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                    round(player_proj_ftm /player_proj_fta, digits = 3))
+                                     round(player_proj_ftm /player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- ifelse(player_proj_twopa == 0,0,
-                    round(player_proj_twopm / player_proj_twopa, digits = 3))
+                                       round(player_proj_twopm / player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-                    round((player_proj_fgm + 0.5 * player_proj_threepm) / 
-                            player_proj_fga, digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / 
+                                              player_proj_fga, digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% last_year_data$Player &
                  !(player$Player %in% two_years_ago_data$Player) &
                  !(player$Player %in% three_years_ago_data$Player)) {
@@ -688,20 +676,20 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                    player$Player), ]$FGM
         weighted_fg_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FGM)
         weighted_threepm <- 6 * last_year_data[which(last_year_data$Player ==
                                                        player$Player), ]$ThreePM
         weighted_threep_miss <- 6 * (last_year_data[which(last_year_data$Player ==
-                                                      player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                      player$Player), ]$ThreePM)
+                                                            player$Player), ]$ThreePA -
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM)
         weighted_ftm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FTM
         weighted_ft_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM)
         weighted_orb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$ORB
         weighted_drb <- 6 * last_year_data[which(last_year_data$Player == 
@@ -718,95 +706,95 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                   player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (6 * player_mp_last_year * 
-                                                 (fgm_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (fgm_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (6 * player_mp_last_year *
-                                                 (fg_miss_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                                 (fg_miss_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (6 * player_mp_last_year *
-                                                 (threepm_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                                 (threepm_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (6 * player_mp_last_year *
-                                              (threep_miss_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                                     (threep_miss_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (6 * player_mp_last_year * 
-                                             (ftm_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (ftm_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (6 * player_mp_last_year *
-                                                 (ft_miss_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                                 (ft_miss_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (6 * player_mp_last_year * 
-                                                 (orb_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (orb_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (6 * player_mp_last_year *
-                                             (drb_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (drb_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (6 * player_mp_last_year *
-                                             (ast_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (ast_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (6 * player_mp_last_year * 
-                                             (stl_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (stl_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (6 * player_mp_last_year * 
-                                             (blk_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (blk_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (6 * player_mp_last_year * 
-                                             (tov_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                             (tov_last_year / mp_last_year)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (6 * player_mp_last_year * 
-                                            (pf_last_year / mp_last_year)) 
-                                      / weighted_minutes_played
+                                            (pf_last_year / mp_last_year)) /
+          weighted_minutes_played
         # For the following categories the sign of the age adjustment is reversed:
         # field goals missed, 3-point field goals missed, free throws missed, 
         # turnovers, and personal fouls. For the shooting categories, shots 
         # missed are projected rather than shots attempted. Projected shots attempted 
         # are then computed by adding projected shots made and projected shots missed
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-          (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
                                             league_avg_weighted_threep_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                           (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) / 
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) / 
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) / 
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,
                                      round(player_proj_fgm / player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                          round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                          round(player_proj_ftm / player_proj_fta, digits = 3))
+                                     round(player_proj_ftm / player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- round(player_proj_twopm / player_proj_twopa, 3)
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-        round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
         # Projected points are computed using projected field goals made, 
         # projected 3-point field goals made, and projected free throws made
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% three_years_ago_data$Player &
                  player$Player %in% last_year_data$Player &
                  !(player$Player %in% two_years_ago_data$Player)) {
@@ -818,179 +806,179 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
         weighted_minutes_played <- 6 * player_mp_last_year + 1 * player_mp_three_years_ago
         weighted_fgm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FGM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FGM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FGM
         weighted_fg_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM) +
-                            1 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FGM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FGA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FGM)
         weighted_threepm <- 6 * last_year_data[which(last_year_data$Player ==
                                                        player$Player), ]$ThreePM +
-                            1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                             player$Player), ]$ThreePM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ThreePM
         weighted_threep_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM) +
-                                1 * (last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$ThreePA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$ThreePM)
         weighted_ftm <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$FTM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FTM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FTM
         weighted_ft_miss <- 6 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM) +
-                            1 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FTA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FTM)
         weighted_orb <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$ORB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$ORB
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ORB
         weighted_drb <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$DRB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$DRB
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$DRB
         weighted_ast <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$AST +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$AST
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$AST
         weighted_stl <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$STL +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$STL
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$STL
         weighted_blk <- 6 * last_year_data[which(last_year_data$Player == 
                                                    player$Player), ]$BLK +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$BLK
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$BLK
         weighted_tov <- 6 * last_year_data[which(last_year_data$Player ==
                                                    player$Player), ]$TOV +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$TOV
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$TOV
         weighted_pf <- 6 * last_year_data[which(last_year_data$Player ==
                                                   player$Player), ]$PF +
-                       1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                        player$Player), ]$PF
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (6 * player_mp_last_year * 
                                              (fgm_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (fgm_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (fgm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (6 * player_mp_last_year *
                                                  (fg_miss_last_year / mp_last_year) +
-                                               1 * player_mp_three_years_ago *
-                                      (fg_miss_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                                 1 * player_mp_three_years_ago *
+                                                 (fg_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (6 * player_mp_last_year *
                                                  (threepm_last_year / mp_last_year) +
-                                               1 * player_mp_three_years_ago *
-                                        (threepm_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                                 1 * player_mp_three_years_ago *
+                                                 (threepm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (6 * player_mp_last_year *
-                                              (threep_miss_last_year / mp_last_year) +
-                                                   1 * player_mp_three_years_ago *
-                                    (threep_miss_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                                     (threep_miss_last_year / mp_last_year) +
+                                                     1 * player_mp_three_years_ago *
+                                                     (threep_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (6 * player_mp_last_year * 
                                              (ftm_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (ftm_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ftm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (6 * player_mp_last_year *
                                                  (ft_miss_last_year / mp_last_year) +
-                                               1 * player_mp_three_years_ago *
-                                        (ft_miss_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                                 1 * player_mp_three_years_ago *
+                                                 (ft_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (6 * player_mp_last_year * 
                                              (orb_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (orb_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (orb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (6 * player_mp_last_year * 
                                              (drb_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (drb_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (drb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (6 * player_mp_last_year * 
                                              (ast_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (ast_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ast_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (6 * player_mp_last_year * 
                                              (stl_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (stl_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (stl_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (6 * player_mp_last_year * 
                                              (blk_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (blk_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (blk_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (6 * player_mp_last_year * 
                                              (tov_last_year / mp_last_year) +
-                                           1 * player_mp_three_years_ago *
-                                             (tov_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (tov_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (6 * player_mp_last_year * 
                                             (pf_last_year / mp_last_year) +
-                                          1 * player_mp_three_years_ago *
-                                            (pf_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                            1 * player_mp_three_years_ago *
+                                            (pf_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
                                             league_avg_weighted_threep_miss) /
-          (weighted_minutes_played + 1000) *player_proj_mp * (1 - age_adj),digits = 0)
+                                           (weighted_minutes_played + 1000) *player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,
-                                round(player_proj_fgm / player_proj_fga, digits = 3))
+                                     round(player_proj_fgm / player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                            round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                            round(player_proj_ftm / player_proj_fta, digits = 3))
+                                     round(player_proj_ftm / player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- ifelse(player_proj_twopa == 0,0,
-                            round(player_proj_twopm / player_proj_twopa, digits = 3))
+                                       round(player_proj_twopm / player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-        round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% three_years_ago_data$Player &
                  player$Player %in% two_years_ago_data$Player &
                  !(player$Player %in% last_year_data$Player)) {
@@ -1000,182 +988,182 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
           three_years_ago_data[which(three_years_ago_data$Player == player$Player), ]$MP
         # last season weight = 6, two seasons ago weight = 3, three seasons ago weight = 1
         weighted_minutes_played <- 3 * player_mp_two_years_ago + 
-                                   1 * player_mp_three_years_ago
+          1 * player_mp_three_years_ago
         weighted_fgm <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$FGM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FGM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FGM
         weighted_fg_miss <-3 * (last_year_data[which(last_year_data$Player ==
                                                        player$Player), ]$FGA -
-                                last_year_data[which(last_year_data$Player ==
-                                                       player$Player), ]$FGM) +
-                           1 * (last_year_data[which(last_year_data$Player ==
-                                                       player$Player), ]$FGA -
-                                last_year_data[which(last_year_data$Player ==
-                                                       player$Player), ]$FGM)
+                                  last_year_data[which(last_year_data$Player ==
+                                                         player$Player), ]$FGM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FGA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FGM)
         weighted_threepm <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                            player$Player), ]$ThreePM +
-                          1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                             player$Player), ]$ThreePM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ThreePM
         weighted_threep_miss <- 3 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM) +
-                                1 * (last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$ThreePA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$ThreePM)
         weighted_ftm <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$FTM +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$FTM
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$FTM
         weighted_ft_miss <- 3 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM) +
-                            1 * (last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM) +
+          1 * (last_year_data[which(last_year_data$Player ==
+                                      player$Player), ]$FTA -
+                 last_year_data[which(last_year_data$Player ==
+                                        player$Player), ]$FTM)
         weighted_orb <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$ORB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$ORB
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$ORB
         weighted_drb <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$DRB +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$DRB
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$DRB
         weighted_ast <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$AST +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$AST
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$AST
         weighted_stl <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$STL +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$STL
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$STL
         weighted_blk <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$BLK +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$BLK
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$BLK
         weighted_tov <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$TOV +
-                        1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                         player$Player), ]$TOV
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$TOV
         weighted_pf <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                       player$Player), ]$PF +
-                       1 * three_years_ago_data[which(three_years_ago_data$Player ==
-                                                        player$Player), ]$PF
+          1 * three_years_ago_data[which(three_years_ago_data$Player ==
+                                           player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (3 * player_mp_two_years_ago *
                                              (fgm_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (fgm_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (fgm_three_years_ago / mp_three_years_ago)) / 
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                            (fg_miss_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago *
-                                        (fg_miss_three_years_ago / mp_three_years_ago)) 
-                                      / weighted_minutes_played
+                                                 (fg_miss_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago *
+                                                 (fg_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (3 * player_mp_two_years_ago *
-                                            (threepm_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago *
-                                        (threepm_three_years_ago / mp_three_years_ago)) 
-                                      /weighted_minutes_played
+                                                 (threepm_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago *
+                                                 (threepm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                        (threep_miss_two_years_ago / mp_two_years_ago) +
-                                                   1 * player_mp_three_years_ago *
-                                    (threep_miss_three_years_ago / mp_three_years_ago)) 
-                                            / weighted_minutes_played
+                                                     (threep_miss_two_years_ago / mp_two_years_ago) +
+                                                     1 * player_mp_three_years_ago *
+                                                     (threep_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (3 * player_mp_two_years_ago *
                                              (ftm_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (ftm_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ftm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                          (ft_miss_two_years_ago / mp_two_years_ago) +
-                                               1 * player_mp_three_years_ago *
-                                      (ft_miss_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                                 (ft_miss_two_years_ago / mp_two_years_ago) +
+                                                 1 * player_mp_three_years_ago *
+                                                 (ft_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (3 * player_mp_two_years_ago *
                                              (orb_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (orb_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (orb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (3 * player_mp_two_years_ago *
                                              (drb_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (drb_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (drb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (3 * player_mp_two_years_ago *
                                              (ast_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (ast_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (ast_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (3 * player_mp_two_years_ago *
                                              (stl_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (stl_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (stl_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (3 * player_mp_two_years_ago *
                                              (blk_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (blk_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (blk_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (3 * player_mp_two_years_ago *
                                              (tov_two_years_ago / mp_two_years_ago) +
-                                           1 * player_mp_three_years_ago *
-                                             (tov_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                             1 * player_mp_three_years_ago *
+                                             (tov_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (3 * player_mp_two_years_ago * 
                                             (pf_two_years_ago / mp_two_years_ago) +
-                                          1 * player_mp_three_years_ago *
-                                            (pf_three_years_ago / mp_three_years_ago)) 
-                                        / weighted_minutes_played
+                                            1 * player_mp_three_years_ago *
+                                            (pf_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
                                             league_avg_weighted_threep_miss) /
-          (weighted_minutes_played + 1000) *player_proj_mp * (1 - age_adj),digits = 0)
+                                           (weighted_minutes_played + 1000) *player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0 )
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0 )
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) / 
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,
-                                  round(player_proj_fgm / player_proj_fga, digits = 3))
+                                     round(player_proj_fgm / player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                          round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                            round(player_proj_ftm / player_proj_fta, digits = 3))
+                                     round(player_proj_ftm / player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- ifelse(player_proj_twopa == 0,0,
-                            round(player_proj_twopm / player_proj_twopa, digits = 3))
+                                       round(player_proj_twopm / player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-        round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% two_years_ago_data$Player &
                  !(player$Player %in% last_year_data$Player) &
                  !(player$Player %in% three_years_ago_data$Player)) {
@@ -1187,20 +1175,20 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                        player$Player), ]$FGM
         weighted_fg_miss <- 3 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FGM)
         weighted_threepm <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                            player$Player), ]$ThreePM
         weighted_threep_miss <- 3 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM)
         weighted_ftm <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$FTM
         weighted_ft_miss <- 3 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM)
         weighted_orb <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
                                                        player$Player), ]$ORB
         weighted_drb <- 3 * two_years_ago_data[which(two_years_ago_data$Player ==
@@ -1217,89 +1205,89 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                       player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (3 * player_mp_two_years_ago *
-                                          (fgm_two_years_ago / mp_two_years_ago))
-                                      /weighted_minutes_played
+                                             (fgm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                          (fg_miss_two_years_ago / mp_two_years_ago))
-                                      /weighted_minutes_played
+                                                 (fg_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (3 * player_mp_two_years_ago *
-                                        (threepm_two_years_ago / mp_two_years_ago))
-                                      /weighted_minutes_played
+                                                 (threepm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                        (threep_miss_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                                     (threep_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (3 * player_mp_two_years_ago *
-                                             (ftm_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (ftm_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (3 * player_mp_two_years_ago *
-                                        (ft_miss_two_years_ago / mp_two_years_ago))
-                                      /weighted_minutes_played
+                                                 (ft_miss_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (3 * player_mp_two_years_ago *
-                                        (orb_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (orb_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (3 * player_mp_two_years_ago *
-                                             (drb_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (drb_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (3 * player_mp_two_years_ago *
-                                             (ast_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (ast_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (3 * player_mp_two_years_ago *
-                                             (stl_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (stl_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (3 * player_mp_two_years_ago *
-                                            (blk_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (blk_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (3 * player_mp_two_years_ago *
-                                            (tov_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                             (tov_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (3 * player_mp_two_years_ago * 
-                                            (pf_two_years_ago / mp_two_years_ago)) 
-                                      / weighted_minutes_played
+                                            (pf_two_years_ago / mp_two_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
                                             league_avg_weighted_threep_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                           (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,
-                              round(player_proj_fgm / player_proj_fga, digits = 3))
+                                     round(player_proj_fgm / player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                            round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                              round(player_proj_ftm / player_proj_fta, digits = 3))
+                                     round(player_proj_ftm / player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- ifelse(player_proj_twopa == 0,0,
-                              round(player_proj_twopm / player_proj_twopa, digits = 3))
+                                       round(player_proj_twopm / player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-        round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       } else if (player$Player %in% three_years_ago_data$Player &
                  !(player$Player %in% last_year_data$Player) &
                  !(player$Player %in% two_years_ago_data$Player)) {
@@ -1311,20 +1299,20 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                          player$Player), ]$FGM
         weighted_fg_miss <- 1 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FGA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FGM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FGM)
         weighted_threepm <- 1 * three_years_ago_data[which(three_years_ago_data$Player ==
                                                              player$Player), ]$ThreePM
         weighted_threep_miss <- 1 * (last_year_data[which(last_year_data$Player ==
                                                             player$Player), ]$ThreePA -
-                                     last_year_data[which(last_year_data$Player ==
-                                                            player$Player), ]$ThreePM)
+                                       last_year_data[which(last_year_data$Player ==
+                                                              player$Player), ]$ThreePM)
         weighted_ftm <- 1 * three_years_ago_data[which(three_years_ago_data$Player ==
                                                          player$Player), ]$FTM
         weighted_ft_miss <- 1 * (last_year_data[which(last_year_data$Player ==
                                                         player$Player), ]$FTA -
-                                 last_year_data[which(last_year_data$Player ==
-                                                        player$Player), ]$FTM)
+                                   last_year_data[which(last_year_data$Player ==
+                                                          player$Player), ]$FTM)
         weighted_orb <- 1 * three_years_ago_data[which(three_years_ago_data$Player ==
                                                          player$Player), ]$ORB
         weighted_drb <- 1 * three_years_ago_data[which(three_years_ago_data$Player ==
@@ -1341,89 +1329,89 @@ forecast_next_year_stats <- function(last_year_data,two_years_ago_data,three_yea
                                                         player$Player), ]$PF
         # scaled to 1000 minutes
         league_avg_weighted_fgm <- 1000 * (1 * player_mp_three_years_ago *
-                                             (fgm_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (fgm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_fg_miss <- 1000 * (1 * player_mp_three_years_ago *
-                                        (fg_miss_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                                 (fg_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threepm <- 1000 * (1 * player_mp_three_years_ago *
-                                        (threepm_three_years_ago / mp_three_years_ago)) 
-                                          /weighted_minutes_played
+                                                 (threepm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_threep_miss <- 1000 * (1 * player_mp_three_years_ago *
-                                    (threep_miss_three_years_ago / mp_three_years_ago)) 
-                                          /weighted_minutes_played
+                                                     (threep_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ftm <- 1000 * (1 * player_mp_three_years_ago *
-                                          (ftm_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (ftm_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ft_miss <- 1000 * (1 * player_mp_three_years_ago *
-                                        (ft_miss_three_years_ago / mp_three_years_ago)) 
-                                          /weighted_minutes_played
+                                                 (ft_miss_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_orb <- 1000 * (1 * player_mp_three_years_ago *
-                                             (orb_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (orb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_drb <- 1000 * (1 * player_mp_three_years_ago *
-                                             (drb_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (drb_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_ast <- 1000 * (1 * player_mp_three_years_ago *
-                                             (ast_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (ast_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_stl <- 1000 * (1 * player_mp_three_years_ago *
-                                             (stl_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (stl_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_blk <- 1000 * (1 * player_mp_three_years_ago *
-                                             (blk_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (blk_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_tov <- 1000 * (1 * player_mp_three_years_ago *
-                                             (tov_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                             (tov_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         league_avg_weighted_pf <- 1000 * (1 * player_mp_three_years_ago *
-                                            (pf_three_years_ago / mp_three_years_ago)) 
-                                          / weighted_minutes_played
+                                            (pf_three_years_ago / mp_three_years_ago)) /
+          weighted_minutes_played
         player_proj_fgm <- round((weighted_fgm + league_avg_weighted_fgm) /
-          (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played +1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_fg_miss <- round((weighted_fg_miss + league_avg_weighted_fg_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_threepm <- round((weighted_threepm + league_avg_weighted_threepm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_threep_miss <- round((weighted_threep_miss +
                                             league_avg_weighted_threep_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                           (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_ftm <- round((weighted_ftm + league_avg_weighted_ftm) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_ft_miss <- round((weighted_ft_miss + league_avg_weighted_ft_miss) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                       (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_orb <- round((weighted_orb + league_avg_weighted_orb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_drb <- round((weighted_fgm + league_avg_weighted_drb) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_trb <- player_proj_orb + player_proj_drb
         player_proj_ast <- round((weighted_ast + league_avg_weighted_ast) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_stl <- round((weighted_stl + league_avg_weighted_stl) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_blk <- round((weighted_blk + league_avg_weighted_blk) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 + age_adj),digits = 0)
         player_proj_tov <- round((weighted_tov + league_avg_weighted_tov) /
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                   (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_pf <- round((weighted_pf + league_avg_weighted_pf) / 
-          (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
+                                  (weighted_minutes_played + 1000) * player_proj_mp * (1 - age_adj),digits = 0)
         player_proj_fga <- player_proj_fgm + player_proj_fg_miss
         player_proj_fgperc <- ifelse(player_proj_fga == 0,0,
-                                    round(player_proj_fgm / player_proj_fga, digits = 3))
+                                     round(player_proj_fgm / player_proj_fga, digits = 3))
         player_proj_threepa <- player_proj_threepm + player_proj_threep_miss
         player_proj_threepperc <- ifelse(player_proj_threepa == 0,0,
-                          round(player_proj_threepm / player_proj_threepa, digits = 3))
+                                         round(player_proj_threepm / player_proj_threepa, digits = 3))
         player_proj_fta <- player_proj_ftm + player_proj_ft_miss
         player_proj_ftperc <- ifelse(player_proj_fta == 0,0,
-                                  round(player_proj_ftm / player_proj_fta, digits = 3))
+                                     round(player_proj_ftm / player_proj_fta, digits = 3))
         player_proj_twopm <- player_proj_fgm - player_proj_threepm
         player_proj_twopa <- player_proj_fga - player_proj_threepa
         player_proj_twopperc <- ifelse(player_proj_twopa == 0,0,
-                              round(player_proj_twopm / player_proj_twopa, digits = 3))
+                                       round(player_proj_twopm / player_proj_twopa, digits = 3))
         player_proj_efgperc <- ifelse(player_proj_fga == 0,0,
-        round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
+                                      round((player_proj_fgm + 0.5 * player_proj_threepm) / player_proj_fga,digits = 3))
         player_proj_pts <- 3 * player_proj_threepm + 2 * player_proj_twopm + 
-                           1 * player_proj_ftm
+          1 * player_proj_ftm
       }
       
       df.player <- data.frame(Player = player$Player,Rk = player$Rk,Pos = player$Pos,
@@ -1496,10 +1484,10 @@ loadAwardsData <- function() {
   # rename column names
   df.temp <- data.frame(Season = df.temp$Season,LG = df.temp$Lg,
                         TotalAllNba = df.temp$TotalAllNba,
-    AllNbaRk = df.temp$Tm,
-    Player = df.temp$Player,
-    Pos = df.temp$Pos,
-    stringsAsFactors = FALSE
+                        AllNbaRk = df.temp$Tm,
+                        Player = df.temp$Player,
+                        Pos = df.temp$Pos,
+                        stringsAsFactors = FALSE
   )
   
   # get seasons only from 1986 - 2019
@@ -1601,9 +1589,7 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   return(df)
 }
-```
 
-```{r Data Collection and Processing, message=FALSE, warning=FALSE}
 YEAR_START <- 1986
 YEAR_END <- 2019
 
@@ -1611,151 +1597,139 @@ YEAR_END <- 2019
 data_all_nba <- loadAwardsData()
 data_player_totals <- loadTotalsData(2000, YEAR_END)
 data_player_totals$YearsInNba <- data_player_totals$Season -
-                      as.integer(data_player_totals$DraftYear)
+  as.integer(data_player_totals$DraftYear)
 
 data_player_totals$AllNba <- FALSE
 data_player_totals$AllNba <- ifelse(data_player_totals$TotalAllNba == 1, TRUE, FALSE)
 
 head(data_all_nba[sample(nrow(data_all_nba), 10),], 10)
 head(data_player_totals[sample(nrow(data_player_totals), 10),], 10)
-```
 
-Data was collected from the well known third-party Basketball-Reference.com. I chose to collect data from this source because of its comprehensive database of historical player, as well as the easy accesiblity (Basketball Reference allows me to download the data as CSV files). The data is well formatted and only minor processing is required. I collected data from the 1985-1986 NBA season up until the 2018-2019 season, including player total stats, player per game stats and a list of players who have been awarded an All-NBA selection. I only considered All-NBA selections from the 1999-2000 season and onwards, but collected data starting with the 1985-1986 season to account for Karl Malone's entire career (as well as all other All-NBA players career)
-
-``` {r Data Analysis: Part 1 - Data Summary, message=FALSE, warning=FALSE}
 # look at the distribution of the stats we have
 cat("Player Totals Data:",dim(data_player_totals)[1],
     "rows by",dim(data_player_totals)[2],"columns\n")
 data_player_totals %>% select(Age,GP,GS,MP,FGM,FGA,FGperc,ThreePM,ThreePA,
                               ThreePperc,TwoPM,TwoPA,TwoPperc,eFGperc,FTM,FTA,
                               FTperc,ORB,DRB,TRB,AST,STL,BLK,PTS) %>% summary()
-```
 
-The summary statistics show a large range of values for any give statistic, as expected. I should normalize each statistic for each season. Also, note that we have 8,263 rows and 35 columns; I will check to see if we can remove some of these data points to avoid feeding noise into the model and reduce the covariates used to model the response.
-
-``` {r Data Analysis: Part 2 - Correlation, message=FALSE, warning=FALSE}
 # to determine which stats might be correlated with winning an All-NBA 
 # selection for a given season
 corr.matrix.totals <- cor(data_player_totals[, c("TotalAllNba","Age","GP","GS","MP","FGM",
-                                          "FGA","FGperc","ThreePM","ThreePA","ThreePperc",
-                                          "TwoPM","TwoPA","TwoPperc","eFGperc","FTM",
-                                          "FTA","FTperc","ORB","DRB","TRB","AST","STL",
-                                          "BLK","TOV","PF","PTS")])
+                                                 "FGA","FGperc","ThreePM","ThreePA","ThreePperc",
+                                                 "TwoPM","TwoPA","TwoPperc","eFGperc","FTM",
+                                                 "FTA","FTperc","ORB","DRB","TRB","AST","STL",
+                                                 "BLK","TOV","PF","PTS")])
 corrplot(corr.matrix.totals[1, 2:27, drop = FALSE],
          title = "Correlation: Player Totals",mar = c(0, 0, 1, 0))
-```
 
-The correlation plots of Player Total Stats show slightly positive correlation between being selected for the All-NBA team and Games Started, Field Goals Made, Field Goals Attempted, Free Throws Made, Free Throws Attempted, Rebounds, Assists, Steals, Blocks, Turnovers, and Points: stronger correlation in the scoring stats while the other counting stats are slightly less correlated. Even though we observe positive correlations with certain covariates, correlation does not necessarily imply causation. I will continue to investigate the relationship
-
-``` {r Data Analysis: Part 3 - Distribution, message=FALSE, warning=FALSE}
 # note: there might be a more efficient way to code this section, 
 # but I sacrificed ease for aesthetics since this will be generating a report
 hist.totals.Age <- ggplot(data_player_totals, aes(x=Age,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.GP <- ggplot(data_player_totals, aes(x=GP,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.GS <- ggplot(data_player_totals, aes(x=GS,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.MP <- ggplot(data_player_totals, aes(x=MP,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FGM <- ggplot(data_player_totals, aes(x=FGM,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FGA <- ggplot(data_player_totals, aes(x=FGA,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FGperc <- ggplot(data_player_totals, aes(x=FGperc,fill=AllNba,color=AllNba)) +
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.ThreePM <-ggplot(data_player_totals,aes(x=ThreePM,fill=AllNba,color=AllNba)) +
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.ThreePA <-ggplot(data_player_totals,aes(x=ThreePA,fill=AllNba,color=AllNba)) +
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.ThreePperc <- ggplot(data_player_totals, 
                                  aes(x=ThreePperc,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.TwoPM <- ggplot(data_player_totals, aes(x=TwoPM,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.TwoPA <- ggplot(data_player_totals, aes(x=TwoPA,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.TwoPperc <- ggplot(data_player_totals,
                                aes(x=TwoPperc,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.eFGperc <-ggplot(data_player_totals,aes(x=eFGperc,fill=AllNba,color=AllNba)) +
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FTM <- ggplot(data_player_totals, aes(x=FTM,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FTA <- ggplot(data_player_totals, aes(x=FTA,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.FTperc <-ggplot(data_player_totals,aes(x=FTperc,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.ORB <- ggplot(data_player_totals, aes(x=ORB,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.DRB <- ggplot(data_player_totals, aes(x=DRB,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.TRB <- ggplot(data_player_totals, aes(x=TRB,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.AST <- ggplot(data_player_totals, aes(x=AST,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.STL <- ggplot(data_player_totals, aes(x=STL,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.BLK <- ggplot(data_player_totals, aes(x=BLK,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.TOV <- ggplot(data_player_totals, aes(x=TOV,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.PF <- ggplot(data_player_totals, aes(x=PF,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.PTS <- ggplot(data_player_totals, aes(x=PTS,fill=AllNba,color=AllNba)) + 
-                        geom_histogram(position = "identity", alpha = 0.5) +
-                        ggtitle("Total Stats") + 
-                        theme(plot.title = element_text(hjust = 0.5))
+  geom_histogram(position = "identity", alpha = 0.5) +
+  ggtitle("Total Stats") + 
+  theme(plot.title = element_text(hjust = 0.5))
 hist.totals.Age
 hist.totals.GP
 hist.totals.GS
@@ -1782,38 +1756,21 @@ hist.totals.BLK
 hist.totals.TOV
 hist.totals.PF
 hist.totals.PTS
-```
 
-The plots are histograms counting the number of players (y-axis) who fall into a certain bucket partitioned by each stat category (x-axis), split between All-NBA players and the rest of the league. Looking at the distribution of our data, comparing All-NBA players against the rest of the league, we uncover interesting findings that will allow me to filter out data points that could potentially dilute the model's ability to showcase elite players. I don't want to flood the model with bench/ rotational players who aren't in consideration for All-NBA honours. I will use Minutes Played during a season as a proxy, and only consider players who play 1600 minutes or more in season. I choose to use MP rather than GP as a filter because it is more restrictive, where if I filter by GP, bench/ rotational players could potentially make it through if they consistantly play throughout the season. Looking at All-NBA players, the lowest MP in a season is about 1600 minutes (the two outlier data points are players who got traded in the middle of the season and so their MP on one of the teams in low).
-
-We consitantly see that All-NBA players are performing above average in the counting stats compared to the rest of the league - a fairly trivial solution. A more interesting discovery is the distributions of the different shooting percentages (FG%, 3P%, 2P%, eFG%, and FT%). We see that All-NBA players have similar distributions compared to the rest of the league, and are not actually shooting consistantly better or more efficiently. I infer that this comes with the territory of All-NBA players having higher usage rates and taking more shots.
-
-``` {r Data Analysis: Part 4 - Filtering Data, message=FALSE, warning=FALSE}
 # filter datapoints based on Minutes played Games Played
 data_player_totals_filtered <- data_player_totals[which(data_player_totals$MP>=1600),c(1:34)]
-```
 
-```{r Data Analysis: Part 5 - Correlation of Filtered Data, message=FALSE, warning=FALSE}
 # lets look at the correlation between All-NBA selections and stats for the 
 # filtered data set
 corr.matrix.totals_filtered <- cor(data_player_totals_filtered[,c("TotalAllNba","Age",
-                                        "GP","GS","MP","FGM","FGA","FGperc","ThreePM",
-                                        "ThreePA","ThreePperc","TwoPM","TwoPA",
-                                        "TwoPperc","eFGperc","FTM","FTA",
-                                        "FTperc","ORB","DRB","TRB","AST",
-                                        "STL","BLK","TOV","PF","PTS")])
+                                                                  "GP","GS","MP","FGM","FGA","FGperc","ThreePM",
+                                                                  "ThreePA","ThreePperc","TwoPM","TwoPA",
+                                                                  "TwoPperc","eFGperc","FTM","FTA",
+                                                                  "FTperc","ORB","DRB","TRB","AST",
+                                                                  "STL","BLK","TOV","PF","PTS")])
 corrplot(corr.matrix.totals_filtered[1,2:27,drop=FALSE], 
          title="Correlation: Player Totals", mar=c(0,0,1,0))
-```
 
-The correlation plots of show slightly stronger correlation between the different stats and being selected for the All-NBA team, better than the larger data set. What's interesting is that Turnovers has a high correlation with making an All-NBA team, but a more realistic explanation is that more Turnovers is caused by a higher usage rate, and that All-NBA players have higher usage rates.
-
-```{r}
-#####################################################
-# notes: use par(mfrow=c(2,2)) to graph plots in grid: https://www.statmethods.net/advgraphs/layout.html
-```
-
-``` {r Data Analysis: Part 6- Normalize Data, message=FALSE, warning=FALSE}
 # after looking at the data summaries and distribution, I normalized each 
 # statistic in each season by dividing it by the seasons max. This means
 # each statistic now lies between (0,1), and the stat leader will now have a value of 1.
@@ -1821,11 +1778,7 @@ The correlation plots of show slightly stronger correlation between the differen
 
 # Player Stat Total
 data_player_totals_normalized <- normalize_stats(data_player_totals_filtered)
-```
 
-After analyzing the data summaries and distributions, I normalized each statistic by dividing by the season's max; this means that each statistic now lies between (0,1) and the stat leader being the max at a value of 1. I do this because I don't want any outliers that are too low or too high in a certain stat category which can hurt the model.
-
-```{r Modelling, message=FALSE, warning=FALSE}
 guard_data_totals <- 
   data_player_totals_normalized[which(data_player_totals_normalized$Pos %in% 
                                         c('PG', 'SG')), ]
@@ -1841,13 +1794,13 @@ lm.guard.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc 
                             ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
                             eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL +
                             BLK + TOV + PF + PTS,
-                      data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
+                          data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
 # lm.guard.total.reduced <- step(lm.guard.total.full, trace = 0)
 # summary(lm.guard.total.reduced)
 lm.guard.total.reduced <- lm(TotalAllNba ~ GP + GS + MP + FGM + ThreePM + ThreePA +
                                ThreePperc + TwoPM + TwoPA + TwoPperc + eFGperc + FTM + 
                                FTperc + DRB + AST + STL + BLK + TOV + PF, 
-                      data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
+                             data = guard_data_totals[which(guard_data_totals$Season != 2019), ])
 lm.guard.total.full.pred <-
   predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ],
                     lm.guard.total.reduced)[1:6, ]
@@ -1861,13 +1814,13 @@ lm.forward.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGper
                               ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
                               eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL +
                               BLK + TOV + PF + PTS, 
-                  data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
+                            data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
 # lm.forward.total.reduced <- step(lm.forward.total.full, trace = 0)
 # summary(lm.forward.total.reduced)
 lm.forward.total.reduced <- lm(TotalAllNba ~ GP + MP + FGperc + ThreePperc + TwoPM +
                                  TwoPA + TwoPperc + eFGperc + FTM + FTperc + ORB + DRB +
                                  AST + STL + BLK + TOV + PTS, 
-                  data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
+                               data = forward_data_totals[which(forward_data_totals$Season != 2019), ])
 lm.forward.total.full.pred <-
   predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ], 
                     lm.forward.total.reduced)[1:6, ]
@@ -1881,12 +1834,12 @@ lm.center.total.full <- lm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGperc
                              ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
                              eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + STL +
                              BLK + TOV + PF + PTS, 
-                    data = center_data_totals[which(center_data_totals$Season != 2019), ])
+                           data = center_data_totals[which(center_data_totals$Season != 2019), ])
 # lm.center.total.reduced <- step(lm.center.total.full, trace = 0)
 # summary(lm.center.total.reduced)
 lm.center.total.reduced <- lm(TotalAllNba ~ GS + Age + TwoPM + TwoPA + FTM + FTA + 
                                 FTperc + ORB + TRB + AST + BLK + PF,
-                    data = center_data_totals[which(center_data_totals$Season != 2019), ])
+                              data = center_data_totals[which(center_data_totals$Season != 2019), ])
 lm.center.total.full.pred <-
   predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ],
                     lm.center.total.reduced)[1:3, ]
@@ -1900,14 +1853,14 @@ log.guard.total.full <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGper
                               ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + TwoPperc + 
                               eFGperc + FTM + FTA + FTperc + ORB + DRB + TRB + AST + 
                               STL + BLK + TOV + PF + PTS,
-                data = guard_data_totals[which(guard_data_totals$Season != 2019), ],
-                family = binomial(link = "logit"))
+                            data = guard_data_totals[which(guard_data_totals$Season != 2019), ],
+                            family = binomial(link = "logit"))
 # log.guard.total.reduced <- step(log.guard.total.full, trace = 0)
 # summary(log.guard.total.reduced)
 log.guard.total.reduced <- glm(TotalAllNba ~ MP + FGM + FGA + TwoPA + eFGperc + FTM +
                                  DRB + AST + STL + TOV + PF + PTS,
-                data = guard_data_totals[which(guard_data_totals$Season != 2019), ],
-                family = binomial(link = "logit"))
+                               data = guard_data_totals[which(guard_data_totals$Season != 2019), ],
+                               family = binomial(link = "logit"))
 log.guard.total.full.pred <-
   predAllNbaPlayers(guard_data_totals[which(guard_data_totals$Season == 2019), ],
                     log.guard.total.reduced)[1:6, ]
@@ -1921,15 +1874,15 @@ log.forward.total.full <- glm(TotalAllNba ~ GP + GS + MP + Age + FGM + FGA + FGp
                                 ThreePM + ThreePA + ThreePperc + TwoPM + TwoPA + 
                                 TwoPperc +eFGperc + FTM + FTA + FTperc + ORB + DRB + 
                                 TRB + AST + STL + BLK + TOV + PF + PTS, 
-            data = forward_data_totals[which(forward_data_totals$Season != 2019), ],
-            family = binomial(link = "logit"))
+                              data = forward_data_totals[which(forward_data_totals$Season != 2019), ],
+                              family = binomial(link = "logit"))
 # log.forward.total.reduced <- step(log.forward.total.full, trace = 0)
 # summary(log.forward.total.reduced)
 log.forward.total.reduced <- glm(TotalAllNba ~ MP + Age + FGperc + ThreePperc + 
                                    TwoPM +eFGperc + FTM + DRB + TRB + AST + STL + 
                                    BLK + TOV + PTS,
-            data = forward_data_totals[which(forward_data_totals$Season != 2019), ],
-            family = binomial(link = "logit"))
+                                 data = forward_data_totals[which(forward_data_totals$Season != 2019), ],
+                                 family = binomial(link = "logit"))
 log.forward.total.full.pred <-
   predAllNbaPlayers(forward_data_totals[which(forward_data_totals$Season == 2019), ],
                     log.forward.total.reduced)[1:6, ]
@@ -1942,24 +1895,21 @@ log.forward.total.red.pred <-
 log.center.total.full <- glm(TotalAllNba ~ GP + GS + Age + FGM + FGA + FGperc + 
                                ThreePM + TwoPM + TwoPA + TwoPperc + eFGperc + FTM + 
                                ORB + DRB + AST + STL + BLK + PF,
-            data = center_data_totals[which(center_data_totals$Season != 2019), ],
-            family = binomial(link = "logit"))
+                             data = center_data_totals[which(center_data_totals$Season != 2019), ],
+                             family = binomial(link = "logit"))
 # log.center.total.reduced <- step(log.center.total.full, trace = 0)
 # summary(log.center.total.reduced)
 log.center.total.reduced <- glm(TotalAllNba ~ GP + Age + FGA + ThreePA + TwoPM + 
                                   TwoPA + eFGperc + FTA + FTperc + TRB + AST + BLK + TOV,
-            data = center_data_totals[which(center_data_totals$Season != 2019), ],
-            family = binomial(link = "logit"))
+                                data = center_data_totals[which(center_data_totals$Season != 2019), ],
+                                family = binomial(link = "logit"))
 log.center.total.full.pred <-
   predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ],
                     log.center.total.reduced)[1:3, ]
 log.center.total.red.pred <-
   predAllNbaPlayers(center_data_totals[which(center_data_totals$Season == 2019), ],
                     log.center.total.reduced)[1:3, ]
-```
-Since the All-NBA team consists for 6 guards, 6 forwards, and 3 centers, I decided to model each position seperately because the counting stats between guards, forwards, and centers differ quite significantly. I'll use the 2000-2018 data to train the model and measure the accuracy against the predictions for the 2019 season.
 
-```{r Modeling Accuracy, message=FALSE, warning=FALSE}
 # all nba team
 lm.total.all_nba_team.full <- rbind(lm.guard.total.full.pred, 
                                     lm.forward.total.full.pred, lm.center.total.full.pred)
@@ -1999,23 +1949,19 @@ text(x = full_vs_red_plot,y = c(full_vs_red_acc$Linear[1],full_vs_red_acc$Linear
                      full_vs_red_acc$Logistic[1],full_vs_red_acc$Logistic[2]),digits = 3),
      pos = 3,cex = 0.7)
 legend("bottomright", c("Linear Model", "Logistic Model"), fill = colours, cex = 0.8)
-```
 
-I predicted the 2019 All-NBA team by first predicting the All-NBA guards, forwards, and centers seperately, and then combining the results to form the All-NBA team. The Logistic Model with Player Total Stats Data correctly predicted 93.3% of the 2019 All-NBA team, or 14/15 players. We see that the reduced models with less covariates perform the same as the full models so I will use the reduced models going forward. With the simpler models, I will perform cross validation to see which model performs the best. With the 2000-2019 data, I will test the model accuracy by using all the years, except for 1, to train the model and predict All-NBA players for the 1 season left out of the training data set, and do so for each and every year.
-
-```{r Cross Validation, message=FALSE, warning=FALSE}
 lm.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,
-                                                      lm.guard.total.reduced, "guard"))
+                                                                   lm.guard.total.reduced, "guard"))
 lm.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals, 
-                                                    lm.forward.total.reduced, "forward"))
+                                                                     lm.forward.total.reduced, "forward"))
 lm.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,
-                                                      lm.center.total.reduced, "center"))
+                                                                    lm.center.total.reduced, "center"))
 log.guard.total.accuracies <- mean(cross_validation_all_nba_players(guard_data_totals,
-                                                        log.guard.total.reduced, "guard"))
+                                                                    log.guard.total.reduced, "guard"))
 log.forward.total.accuracies <- mean(cross_validation_all_nba_players(forward_data_totals,
-                                                    log.forward.total.reduced, "forward"))
+                                                                      log.forward.total.reduced, "forward"))
 log.center.total.accuracies <- mean(cross_validation_all_nba_players(center_data_totals,
-                                                      log.center.total.reduced, "center"))
+                                                                     log.center.total.reduced, "center"))
 
 linear_vs_log <- data.frame(Linear =  c(lm.guard.total.accuracies,
                                         lm.forward.total.accuracies,
@@ -2043,43 +1989,30 @@ text(x = full_vs_red_plot,y = c(linear_vs_log$Linear[1],linear_vs_log$Logistic[1
                      linear_vs_log$Linear[3],linear_vs_log$Logistic[3]),digits = 3),
      pos = 3,cex = 0.7)
 legend("bottomright", c("Guards", "Forwards", "Centers"), fill = colours, cex = 0.8)
-```
 
-I predicted the All-NBA guards, forwards, and centers seperately for each year, and then took the average of the model's accuracy respectively. The Logisitc models out performed the Linear models for each position, with the Guard's model accurately predicting the All-NBA guards 79.2% of the time, the Forwards's model accurately predicting the All-NBA forwards 76.7% of the time, and the Center's model accurately predicting the All-NBA centers 75% of the time, for each season between 2000-2019. I'll continue with the Logistic model's for each position going forward.
-
-
-To get the predictions for Luka Doncic, Kyrie Irving, and Stephen Curry I will use the Reduced Logistic Model for guards and the Reduced Logistic Model for centers for Karl-Anthony Towns. First, I have to project the player's stats for the rest of their career, and doing so I make a couple assumptions: 
-1) I will assume that players don't have a career longer than 17 years, which is based on the careers of players like Kobe, Shaq, Lebron, and Tim Duncan
-2) I project a players GP, GS, and MP based on their prior seasons GP, GS, and MP, but add normalized noise with a variance of 4 games
-3) Stat projections are based on a weighted average of the players past 3 seasons played, the minutes they played during each season, and scaled by the league average in each category per minute. Then the projected stat per minute is multipled by the projected MP by that player to get their total
-The algorithm is based off a similar method used by Basketball-Reference.com
-
-```{r Prediction, message=FALSE, warning=FALSE}
 # this simulates the stats for NBA players over the next 15 seasons
-set.seed(1)
+# set.seed(24)
 df.forecast <- simulate_all_nba(data_player_totals_filtered)
 
 # Total number of All-NBA selections remaining in each of player's career
 luka <- dim(df.forecast[which(df.forecast$Player=="Luka Dončić" &
-                              df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
+                                df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 kyrie <- dim(df.forecast[which(df.forecast$Player=="Kyrie Irving" &
-                              df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
+                                 df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 steph <- dim(df.forecast[which(df.forecast$Player=="Stephen Curry" &
-                              df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
+                                 df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 kat <- dim(df.forecast[which(df.forecast$Player=="Karl-Anthony Towns" &
-                              df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
+                               df.forecast$TotalAllNba==1&df.forecast$Season>=2020),])[1]
 # I predict that Luka Doncic will receive 7 All-NBA selections
-# kyrie Irving 1, Steph Curry 1, and Karl-Anthony Towns 11
+# Kyrie Irving 1, Steph Curry 1, and Karl-Anthony Towns 11
 
 print(paste("I predict that Luka Doncic will receive ",luka,
             " All-NBA selections for the remainder of his carrer, Kyrie Irving ",kyrie,
             ", Steph Curry ",steph,", and Karl-Anthony Towns ",kat,"."))
-```
 
-
-```{r Simulation, message=FALSE, warning=FALSE}
-seeds <- sample(1:100,100)
-# seeds <- c(1,2)
+###### Note: running 100 simulations takes a long time so I have it commented out
+# seeds <- sample(1:100,100)
+seeds <- c(1)
 luka_most <- 0
 kyrie_most <- 0
 steph_most <- 0
@@ -2127,17 +2060,11 @@ kyrie_est <- mean(sim_results$Kyrie)
 steph_est <- mean(sim_results$Steph)
 kat_est <- mean(sim_results$Kat)
 
+# The likelihood that Doncic will have the greatest number of All-NBA selections remaining among the group is: 0.61, Kyrie Irving: 0.01, Steph Curry: 0, Karl-Anthony Towns: 0.46
+# The average number of All-NBA selections for Luka Doncic out of 100 simulation(s) is 7.64, Kyrie Irving: 0.68, Steph Curry: 0.43, and Karl-Anthony Towns: 6.81
+
 print(paste("The likelihood that Doncic will have the greatest number of All-NBA selections remaining among the group is: ",luka_likelihood,", Kyrie Irving: ",kyrie_likelihood,
             ", Steph Curry: ",steph_likelihood,", Karl-Anthony Towns: ",kat_likelihood, sep = ""))
 print(paste("The average number of All-NBA selections for Luka Doncic out of ",length(seeds)," simulation(s) is ",luka_est,
             ", Kyrie Irving: ",kyrie_est,", Steph Curry: ",steph_est,", and Karl-Anthony Towns: ",kat_est,sep = ""))
-# The likelihood that Doncic will have the greatest number of All-NBA selections remaining among the group is: 0.5, Kyrie Irving: 0, Steph Curry: 0, Karl-Anthony Towns: 0.6
-# The average number of All-NBA selections for Luka Doncic out of 10 simulation(s) is 7.7, Kyrie Irving: 1.5, Steph Curry: 0.3, and Karl-Anthony Towns: 8.1"
-```
 
-```{r Further Considerations}
-```
-
-
-``` {r }
-```

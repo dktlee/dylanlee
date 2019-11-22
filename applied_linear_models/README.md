@@ -1,4 +1,4 @@
-# Applied Linear models
+# Applied Linear Models
 
 Modeling the relationship between a response variable and several explanatory variables via regression models. Main source of reference is the textbook "Introduction to Regression Modeling" by Abraham B and Ledolter J.
 

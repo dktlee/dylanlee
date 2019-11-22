@@ -1,4 +1,4 @@
-# Introduction to Computer science
+# Introduction to Computer Science
 
 Learning introductory computer science in python.
 

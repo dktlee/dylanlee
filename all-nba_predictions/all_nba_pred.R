@@ -1451,7 +1451,7 @@ loadAwardsData <- function() {
   df <- data.frame(Season = integer(),Lg = character(),AllNba = logical(),
                    TotalAllNba = integer(),ALlNbaRk = character(),Player = character(),
                    Pos = character)
-  file_pth <- "all_nba_awards/all_nba_awards.csv"
+  file_pth <- "data/all_nba_awards/all_nba_awards.csv"
   df.temp <- read.csv(file_pth, header = TRUE, stringsAsFactors = FALSE)
   # assign each player to an individual row in the dataframe
   df.temp <- melt(df.temp, id = (c("Season", "Lg", "Tm")))
@@ -1515,7 +1515,7 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   # loop through each year's csv file and load data
   for (year in yr_start:yr_end) {
-    file_pth <- paste("player_stats_totals/", year, ".csv", sep = "")
+    file_pth <- paste("data/player_stats_totals/", year, ".csv", sep = "")
     df.temp <- read.csv(file_pth, header = TRUE, stringsAsFactors = FALSE)
     
     df.temp$Season <- year
@@ -1538,7 +1538,7 @@ loadTotalsData <- function(yr_start, yr_end) {
     df <- data.frame(rbind(df, df.temp))
   }
   
-  df.draft <- read.csv("player_draft_year/player_draft_year.csv",
+  df.draft <- read.csv("data/player_draft_year/player_draft_year.csv",
                        header = TRUE,stringsAsFactors = FALSE)
   df.draft <- df.draft %>% distinct()
   df.draft <- df.draft[, c(2, 7)]

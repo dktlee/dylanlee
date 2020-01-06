@@ -1591,7 +1591,7 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   # remove TOT seasons (rows that consolidated totals for players who played for 
   # multiple teams in 1 season)
-  df <- df[which(df$Tm != "TOT"),]
+  # df <- df[which(df$Tm != "TOT"),]
   df$FGperc <- ifelse(df$FTA == 0, 0, df$FGperc)
   df$ThreePperc <- ifelse(df$ThreePA == 0, 0, df$ThreePperc)
   # remove rows with missing observations
@@ -1601,6 +1601,23 @@ loadTotalsData <- function(yr_start, yr_end) {
   
   return(df)
 }
+```
+
+```{r Data Collection and Processing, message=FALSE, warning=FALSE}
+YEAR_START <- 1986
+YEAR_END <- 2019
+
+# load all data in from Basketball-Reference.com
+test_all_nba <- loadAwardsData()
+test_player_totals <- loadTotalsData(2000, YEAR_END)
+test_player_totals$YearsInNba <- test_player_totals$Season -
+                      as.integer(test_player_totals$DraftYear)
+
+test_player_totals$AllNba <- FALSE
+test_player_totals$AllNba <- ifelse(test_player_totals$TotalAllNba == 1, TRUE, FALSE)
+
+head(test_all_nba[sample(nrow(test_all_nba), 10),], 10)
+head(test_player_totals[sample(nrow(test_player_totals), 10),], 10)
 ```
 
 ```{r Data Collection and Processing, message=FALSE, warning=FALSE}

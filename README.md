@@ -1,2 +1,3 @@
-# Dylan Lee
-Visit my website https://dktlee.github.io/ to learn more about me.
+# University Projects
+
+This repository stores various projects and code files I have written over the years for different courses I have taken throughout my undergraduate studies.
